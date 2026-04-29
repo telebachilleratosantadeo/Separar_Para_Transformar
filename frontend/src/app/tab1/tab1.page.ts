@@ -15,7 +15,7 @@ import {
 
 // Íconos
 import { addIcons } from 'ionicons';
-import { cameraOutline, imageOutline } from 'ionicons/icons';
+import { cameraOutline, imageOutline, leafOutline, saveOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tab1',
@@ -33,11 +33,14 @@ import { cameraOutline, imageOutline } from 'ionicons/icons';
   ]
 })
 export class Tab1Page {
-
+  // Datos del formulario
   material: number | 'otro' | null = null;
   otroMaterial: string = '';
   cantidad: number | null = null;
   fotoBase64: string | undefined = undefined;
+  
+  // Fecha automática para el registro semanal
+  fechaRegistro: string = new Date().toISOString().split('T')[0];
 
   API = 'http://localhost:3000';
 
@@ -45,16 +48,19 @@ export class Tab1Page {
     private toastController: ToastController,
     private http: HttpClient
   ) {
-    addIcons({ cameraOutline, imageOutline });
+    // Mantengo tus iconos y agrego los del proyecto
+    addIcons({ cameraOutline, imageOutline, leafOutline, saveOutline });
   }
 
   obtenerPlaceholderCantidad(): string {
-    if (this.material === 2) return 'Ej. 5 botellas';
-    if (this.material === 3 || this.material === 4) return 'Ej. 2 kg';
+    if (this.material === 1) return 'Ej. 2 kg de Plástico';
+    if (this.material === 2) return 'Ej. 5 botellas de Vidrio';
+    if (this.material === 3) return 'Ej. 3 kg de Papel';
+    if (this.material === 4) return 'Ej. 1 kg de Orgánico';
     return 'Ingresa la cantidad';
   }
 
-  // 📸 TOMAR FOTO
+  // --- LÓGICA DE CÁMARA (Sin cambios en tu lógica original) ---
   async tomarFoto() {
     try {
       const image = await Camera.getPhoto({
@@ -69,7 +75,6 @@ export class Tab1Page {
     }
   }
 
-  // 🖼️ GALERÍA
   async elegirDeGaleria() {
     try {
       const image = await Camera.getPhoto({
@@ -84,46 +89,53 @@ export class Tab1Page {
     }
   }
 
-  // 🔥 REGISTRAR
+  // --- LÓGICA DE REGISTRO (Punto 2 del Proyecto) ---
   async registrarReciclaje() {
     if (!this.material || !this.cantidad || this.cantidad <= 0) {
       this.mostrarMensaje('Completa material y cantidad válidos', 'warning');
       return;
     }
 
-    // ✅ Validar que si es "otro", se haya escrito algo
     if (this.material === 'otro' && !this.otroMaterial.trim()) {
       this.mostrarMensaje('Especifica el material en "Otro"', 'warning');
       return;
     }
 
     const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    if (!usuario.id) {
+      this.mostrarMensaje('Inicia sesión para registrar', 'danger');
+      return;
+    }
 
     const datos = {
       residuo_id: this.material === 'otro' ? null : this.material,
       cantidad: this.cantidad,
-      usuario_id: usuario.id || null,
+      usuario_id: usuario.id,
       otro_material: this.material === 'otro' ? this.otroMaterial.trim() : null,
-      foto: this.fotoBase64 || null
+      foto: this.fotoBase64 || null,
+      fecha: this.fechaRegistro // Importante para el seguimiento semanal
     };
 
+    // Usamos la ruta /reciclaje que ya tienes configurada
     this.http.post(`${this.API}/reciclaje`, datos).subscribe({
       next: () => {
-        this.mostrarMensaje('✅ Guardado en MySQL', 'success');
-        // Resetear formulario
-        this.material = null;
-        this.otroMaterial = '';
-        this.cantidad = null;
-        this.fotoBase64 = undefined;
+        this.mostrarMensaje('✅ Registro guardado en San Tadeo', 'success');
+        this.resetearFormulario();
       },
       error: (err) => {
-        console.error('Error al guardar reciclaje:', err);
-        this.mostrarMensaje('❌ Error al guardar', 'danger');
+        console.error('Error al guardar:', err);
+        this.mostrarMensaje('❌ Error de conexión al servidor', 'danger');
       }
     });
   }
 
-  // 🔔 TOAST
+  resetearFormulario() {
+    this.material = null;
+    this.otroMaterial = '';
+    this.cantidad = null;
+    this.fotoBase64 = undefined;
+  }
+
   async mostrarMensaje(mensaje: string, color: string) {
     const toast = await this.toastController.create({
       message: mensaje,

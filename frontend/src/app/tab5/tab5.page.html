@@ -1,190 +1,230 @@
 <ion-segment [(ngModel)]="selectedSegment">
-  <ion-segment-button value="first" content-id="first">
+  <ion-segment-button value="first">
     <ion-label>Perfil</ion-label>
   </ion-segment-button>
-  <ion-segment-button value="second" content-id="second">
+  <ion-segment-button value="second">
     <ion-label>Reciclajes</ion-label>
   </ion-segment-button>
-  <ion-segment-button value="third" content-id="third">
+  <ion-segment-button value="third">
     <ion-label>Estadísticas</ion-label>
   </ion-segment-button>
 </ion-segment>
 
 <ion-segment-view>
-  <!-- PERFIL DE USUARIO -->
-  <ion-segment-content id="first">
-    <div *ngIf="selectedSegment === 'first'">
-      <ion-header class="ion-no-border">
-        <ion-toolbar class="custom-toolbar">
-          <ion-title>PERFIL DE USUARIO</ion-title>
+  <ion-segment-content id="first" [hidden]="selectedSegment !== 'first'">
+    <ion-header class="ion-no-border">
+      <ion-toolbar class="custom-toolbar">
+        <ion-title>PERFIL DE USUARIO</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content [fullscreen]="true" class="dark-bg">
+      @if (usuario) {
+      <div class="profile-container">
+        <div class="avatar-wrapper">
+          <div class="profile-image" [class.editing]="modoEdicion">
+            <img [src]="usuario.foto ? usuario.foto : 'https://api.dicebear.com/7.x/bottts/svg?seed=' + usuario.usuario + '&baseColor=66bb6a'" />
+          </div>
+          @if (modoEdicion) {
+          <div class="edit-photo-overlay">
+            <input type="file" id="edit-file" (change)="onFileSelected($event)" hidden accept="image/*" />
+            <label for="edit-file">
+              <ion-icon name="camera-outline"></ion-icon>
+            </label>
+          </div>
+          }
+        </div>
+
+        <ion-card class="neon-card profile-data-card">
+          <ion-card-content>
+            <ion-list class="transparent-list">
+              <ion-item class="custom-item" lines="none">
+                <ion-icon slot="start" name="person-outline" color="success"></ion-icon>
+                <ion-label>
+                  <h3 class="info-label">USUARIO</h3>
+                  <p class="info-value">{{ usuario.usuario }}</p>
+                </ion-label>
+              </ion-item>
+              
+              <ion-item class="custom-item" lines="none">
+                <ion-icon slot="start" name="document-text-outline" color="warning"></ion-icon>
+                <ion-label>
+                  <h3 class="info-label">COMITÉ / ROL</h3>
+                  <p class="info-value">{{ usuario.rol || 'Sin asignar' }}</p>
+                </ion-label>
+              </ion-item>
+
+              <ion-item class="custom-item" lines="none">
+                <ion-icon slot="start" name="id-card-outline" color="success"></ion-icon>
+                <ion-label>
+                  <h3 class="info-label">CURP</h3>
+                  <p class="info-value">{{ usuario.curp }}</p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+
+        @if (modoEdicion) {
+        <div class="edit-name-row">
+          <ion-item fill="outline" class="custom-item">
+            <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="usuario.nombre"></ion-input>
+          </ion-item>
+          <ion-item fill="outline" class="custom-item">
+            <ion-input label="Apellidos" labelPlacement="floating" [(ngModel)]="usuario.apellidos"></ion-input>
+          </ion-item>
+        </div>
+        } @else {
+        <p class="profile-fullname">{{ usuario.nombre }} {{ usuario.apellidos }}</p>
+        }
+
+        <ion-card class="neon-card profile-data-card">
+          <ion-card-content>
+            @if (!modoEdicion) {
+            <ion-list class="transparent-list">
+              <ion-item class="custom-item" lines="none">
+                <ion-icon slot="start" name="mail-outline" color="success"></ion-icon>
+                <ion-label>
+                  <h3 class="info-label">EMAIL</h3>
+                  <p class="info-value">{{ usuario.email }}</p>
+                </ion-label>
+              </ion-item>
+              <ion-item class="custom-item" lines="none">
+                <ion-icon slot="start" name="call-outline" color="success"></ion-icon>
+                <ion-label>
+                  <h3 class="info-label">TELÉFONO</h3>
+                  <p class="info-value">{{ usuario.telefono }}</p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+            } @else {
+            <div>
+              <ion-item fill="outline" class="custom-item">
+                <ion-icon slot="start" name="mail-outline" color="success"></ion-icon>
+                <ion-input label="Email" type="email" labelPlacement="floating" [(ngModel)]="usuario.email"></ion-input>
+              </ion-item>
+              <ion-item fill="outline" class="custom-item">
+                <ion-icon slot="start" name="call-outline" color="success"></ion-icon>
+                <ion-input label="Teléfono" type="tel" labelPlacement="floating" [(ngModel)]="usuario.telefono"></ion-input>
+              </ion-item>
+            </div>
+            }
+          </ion-card-content>
+        </ion-card>
+
+        <div class="action-buttons-container">
+          @if (!modoEdicion) {
+          <ion-button expand="block" (click)="activarEdicion()" class="neon-button">
+            <ion-icon slot="start" name="create-outline"></ion-icon> MODIFICAR PERFIL
+          </ion-button>
+          <ion-button expand="block" color="danger" fill="clear" (click)="cerrarSesion()">
+            CERRAR SESIÓN
+          </ion-button>
+          } @else {
+          <ion-button expand="block" (click)="guardarCambios()" class="neon-button btn-guardar">
+            <ion-icon slot="start" name="save-outline"></ion-icon> GUARDAR CAMBIOS
+          </ion-button>
+          <ion-button expand="block" fill="outline" (click)="cancelarEdicion()" class="neon-button btn-cancelar">
+            <ion-icon slot="start" name="close-outline"></ion-icon> CANCELAR
+          </ion-button>
+          }
+        </div>
+      </div>
+      }
+    </ion-content>
+  </ion-segment-content>
+
+  <ion-segment-content id="second" [hidden]="selectedSegment !== 'second'">
+    <ion-content [fullscreen]="true" class="ion-padding">
+      <ion-header collapse="condense">
+        <ion-toolbar>
+          <ion-title size="large">Mis Reciclajes</ion-title>
         </ion-toolbar>
       </ion-header>
 
-      <ion-content [fullscreen]="true" class="dark-bg">
-        <div class="profile-container" *ngIf="usuario">
-          <!-- Avatar -->
-          <div class="avatar-wrapper">
-            <div class="profile-image" [class.editing]="modoEdicion">
-              <img [src]="usuario.foto ? usuario.foto : 'https://api.dicebear.com/7.x/bottts/svg?seed=' + usuario.usuario + '&baseColor=66bb6a'" />
-            </div>
-            <div *ngIf="modoEdicion" class="edit-photo-overlay">
-              <input type="file" id="edit-file" (change)="onFileSelected($event)" hidden accept="image/*" />
-              <label for="edit-file">
-                <ion-icon name="camera-outline"></ion-icon>
-              </label>
-            </div>
-          </div>
-
-          <!-- Datos usuario -->
-          <ion-card class="neon-card profile-data-card">
-            <ion-card-content>
-              <ion-list class="transparent-list">
-                <ion-item class="custom-item" lines="none">
-                  <ion-icon slot="start" name="person-outline" color="success"></ion-icon>
-                  <ion-label>
-                    <h3 class="info-label">USUARIO</h3>
-                    <p class="info-value">{{ usuario.usuario }}</p>
-                  </ion-label>
-                </ion-item>
-                <ion-item class="custom-item" lines="none">
-                  <ion-icon slot="start" name="id-card-outline" color="success"></ion-icon>
-                  <ion-label>
-                    <h3 class="info-label">CURP</h3>
-                    <p class="info-value">{{ usuario.curp }}</p>
-                  </ion-label>
-                </ion-item>
-              </ion-list>
-            </ion-card-content>
-          </ion-card>
-
-          <!-- Nombre y Apellidos -->
-          <div *ngIf="modoEdicion" class="edit-name-row">
-            <ion-item fill="outline" class="custom-item">
-              <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="usuario.nombre"></ion-input>
-            </ion-item>
-            <ion-item fill="outline" class="custom-item">
-              <ion-input label="Apellidos" labelPlacement="floating" [(ngModel)]="usuario.apellidos"></ion-input>
-            </ion-item>
-          </div>
-
-          <p class="profile-fullname" *ngIf="!modoEdicion">
-            {{ usuario.nombre }} {{ usuario.apellidos }}
-          </p>
-
-          <!-- Email, Teléfono, Contraseña -->
-          <ion-card class="neon-card profile-data-card">
-            <ion-card-content>
-              <ion-list *ngIf="!modoEdicion" class="transparent-list">
-                <ion-item class="custom-item" lines="none">
-                  <ion-icon slot="start" name="mail-outline" color="success"></ion-icon>
-                  <ion-label>
-                    <h3 class="info-label">EMAIL</h3>
-                    <p class="info-value">{{ usuario.email }}</p>
-                  </ion-label>
-                </ion-item>
-                <ion-item class="custom-item" lines="none">
-                  <ion-icon slot="start" name="call-outline" color="success"></ion-icon>
-                  <ion-label>
-                    <h3 class="info-label">TELÉFONO</h3>
-                    <p class="info-value">{{ usuario.telefono }}</p>
-                  </ion-label>
-                </ion-item>
-                <ion-item class="custom-item" lines="none">
-                  <ion-icon slot="start" name="key-outline" color="success"></ion-icon>
-                  <ion-label>
-                    <h3 class="info-label">CONTRASEÑA</h3>
-                    <p class="info-value">********</p>
-                  </ion-label>
-                </ion-item>
-              </ion-list>
-
-              <div *ngIf="modoEdicion">
-                <ion-item fill="outline" class="custom-item">
-                  <ion-icon slot="start" name="mail-outline" color="success"></ion-icon>
-                  <ion-input label="Email" type="email" labelPlacement="floating" [(ngModel)]="usuario.email"></ion-input>
-                </ion-item>
-                <ion-item fill="outline" class="custom-item">
-                  <ion-icon slot="start" name="call-outline" color="success"></ion-icon>
-                  <ion-input label="Teléfono" type="tel" labelPlacement="floating" [(ngModel)]="usuario.telefono"></ion-input>
-                </ion-item>
-                <ion-item fill="outline" class="custom-item">
-                  <ion-icon slot="start" name="key-outline" color="success"></ion-icon>
-                  <ion-input label="Contraseña" type="text" labelPlacement="floating" [(ngModel)]="usuario.password"></ion-input>
-                </ion-item>
-              </div>
-            </ion-card-content>
-          </ion-card>
-
-          <!-- Botones -->
-          <div class="action-buttons-container">
-            <ion-button expand="block" *ngIf="!modoEdicion" (click)="activarEdicion()" class="neon-button">
-              <ion-icon slot="start" name="create-outline"></ion-icon> MODIFICAR PERFIL
-            </ion-button>
-            <div *ngIf="modoEdicion">
-              <ion-button expand="block" (click)="guardarCambios()" class="neon-button btn-guardar">
-                <ion-icon slot="start" name="save-outline"></ion-icon> GUARDAR CAMBIOS
-              </ion-button>
-              <ion-button expand="block" fill="outline" (click)="cancelarEdicion()" class="neon-button btn-cancelar">
-                <ion-icon slot="start" name="close-outline"></ion-icon> CANCELAR
-              </ion-button>
-            </div>
-          </div>
-        </div>
-      </ion-content>
-    </div>
+      @for (r of reciclajesMostrados; track r.id) {
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>
+            {{ r.residuo_id ? materiales[r.residuo_id] : r.otro_material }}
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p><strong>Cantidad:</strong> {{ r.cantidad }} kg</p>
+          <p><strong>Fecha:</strong> {{ r.fecha | date:'short' }}</p>
+          @if (r.foto) {
+          <img [src]="'data:image/jpeg;base64,' + r.foto" style="width:100%; border-radius:8px; margin-top:10px;" />
+          }
+        </ion-card-content>
+      </ion-card>
+      } @empty {
+      <div style="text-align:center; margin-top:20px; color:#666;">
+        <p>No tienes registros de reciclaje aún.</p>
+      </div>
+      }
+    </ion-content>
   </ion-segment-content>
 
-  <!-- HISTORIAL DE RECICLAJES -->
-<ion-segment-content id="second">
-  <ion-content *ngIf="selectedSegment === 'second'" [fullscreen]="true" class="ion-padding">
-    <ion-header collapse="condense">
-      <ion-toolbar>
-        <ion-title size="large">Mis Reciclajes</ion-title>
-      </ion-toolbar>
-    </ion-header>
+  <ion-segment-content id="third" [hidden]="selectedSegment !== 'third'">
+    <ion-content [fullscreen]="true" class="ion-padding">
 
-    <ion-card *ngFor="let r of reciclajesMostrados">
-      <ion-card-header>
-        <ion-card-title>
-          {{ r.residuo_id ? materiales[r.residuo_id] : r.otro_material }}
-        </ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p><strong>Cantidad:</strong> {{ r.cantidad }}</p>
-        <p><strong>Fecha:</strong> {{ r.fecha | date:'short' }}</p>
-        <img *ngIf="r.foto"
-             [src]="'data:image/jpeg;base64,' + r.foto"
-             style="width:100%; border-radius:8px; margin-top:10px;" />
-      </ion-card-content>
-    </ion-card>
+      @if (usuario?.rol === 'admin' || usuario?.rol === 'evaluacion') {
+      <ion-card style="border: 2px solid #3880ff; border-radius: 15px; background: #f4f5f8; margin-bottom: 20px;">
+        <ion-card-header>
+          <ion-card-title style="color: #3880ff; font-weight: bold;">
+            📊 Seguimiento del Plantel
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div style="height: 250px; width: 100%; position: relative; margin: 0 auto;">
+            <canvas id="canvasGraficaGlobal"></canvas>
+          </div>
 
-    <div *ngIf="reciclajesMostrados.length === 0" style="text-align:center; margin-top:20px; color:#666;">
-      <p>No tienes registros de reciclaje aún.</p>
-    </div>
-  </ion-content>
-</ion-segment-content>
+          <p style="margin-top: 15px; font-weight: bold;">Resultados acumulados:</p>
+          @for (g of estadisticasGlobales; track g.material) {
+          <ion-item lines="full">
+            <ion-label>{{ g.material }}</ion-label>
+            <ion-badge slot="end" color="primary">{{ g.total }} kg</ion-badge>
+          </ion-item>
+          }
+        </ion-card-content>
+      </ion-card>
+      }
 
-<!-- ESTADÍSTICAS -->
- <ion-segment-content id="third">
-  <ion-content *ngIf="selectedSegment === 'third'" [fullscreen]="true" class="ion-padding">
-    <ion-header collapse="condense">
-      <ion-toolbar>
-        <ion-title size="large">Estadísticas</ion-title>
-      </ion-toolbar>
-    </ion-header>
+      <ion-card style="background: linear-gradient(135deg, #2dd36f, #1a7a3e); color: white; border-radius: 15px; margin-bottom: 20px;">
+        <ion-card-content class="ion-text-center">
+          <h3 style="margin: 0; opacity: 0.9; text-transform: uppercase; font-size: 0.8em;">Mi Aportación Personal</h3>
+          <h1 style="font-size: 3em; font-weight: bold; margin: 5px 0;">
+            {{ obtenerTotalGeneral() }} <small style="font-size: 0.4em;">kg</small>
+          </h1>
+        </ion-card-content>
+      </ion-card>
 
-    <ion-card *ngFor="let e of estadisticasMostradas">
-      <ion-card-header>
-        <ion-card-title>{{ e.material }}</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p><strong>Total reciclado:</strong> {{ e.total }}</p>
-      </ion-card-content>
-    </ion-card>
+      <ion-card style="border-radius: 15px; background: white; margin-bottom: 20px;">
+        <ion-card-header>
+          <ion-card-title style="color: #333;">Progreso Visual</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div style="height: 250px; width: 100%; position: relative; margin: 0 auto;">
+            <canvas id="canvasGrafica"></canvas>
+          </div>
+        </ion-card-content>
+      </ion-card>
 
-    <div *ngIf="estadisticasMostradas.length === 0" style="text-align:center; margin-top:20px; color:#666;">
-      <p>No tienes estadísticas aún.</p>
-    </div>
-  </ion-content>
-</ion-segment-content>
+      @for (e of estadisticasMostradas; track e.material) {
+      <ion-card style="border-radius: 12px; border-left: 10px solid; margin-bottom: 10px;" [style.border-color]="obtenerColor(e.material)">
+        <ion-card-header>
+          <ion-card-title style="font-size: 1.1em; font-weight: bold;">{{ e.material }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p><strong>Total reciclado:</strong> {{ e.total }} kg</p>
+        </ion-card-content>
+      </ion-card>
+      } @empty {
+      <div style="text-align:center; margin-top:20px; color:#666;">
+        <p>No tienes estadísticas personales aún.</p>
+      </div>
+      }
+    </ion-content>
+  </ion-segment-content>
 </ion-segment-view>
