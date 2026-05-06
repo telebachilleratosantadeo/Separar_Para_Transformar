@@ -66,40 +66,37 @@ app.post('/reciclaje', async (req, res) => {
         res.status(500).json({ success: false, mensaje: 'Error al guardar' });
     }
 });
-
-// ==========================
-// 📊 ESTADÍSTICAS GLOBALES (ADMIN)
-// ==========================
-app.get('/admin/estadisticas-globales', async (req, res) => {
-    const query = `
-        SELECT r.nombre AS material, SUM(rec.cantidad) AS total 
-        FROM reciclaje rec 
-        JOIN residuos r ON rec.residuo_id = r.id 
-        GROUP BY r.nombre`;
-    try {
-        const [results] = await db.query(query);
-        res.json(results);
-    } catch (err) {
-        console.error('❌ Error en SQL Globales:', err.message);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// ==========================
-// 📊 ESTADÍSTICAS POR USUARIO
-// ==========================
 app.get('/estadisticas/:usuario_id', async (req, res) => {
     const { usuario_id } = req.params;
     const query = `
-        SELECT COALESCE(r.nombre, rec.otro_material, 'Otro') AS material, SUM(rec.cantidad) AS total
-        FROM reciclaje rec 
-        LEFT JOIN residuos r ON rec.residuo_id = r.id
-        WHERE rec.usuario_id = ? 
-        GROUP BY material`;
+        SELECT m.nombre as material, SUM(r.cantidad) as total 
+        FROM reciclaje r 
+        JOIN residuos m ON r.residuo_id = m.id 
+        WHERE r.usuario_id = ? AND r.estado = 'aprobado' 
+        GROUP BY m.nombre`;
+
     try {
         const [rows] = await db.query(query, [usuario_id]);
         res.json(rows);
     } catch (err) {
+        console.error("❌ Error en estadísticas individuales:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/admin/estadisticas-globales', async (req, res) => {
+    const query = `
+        SELECT m.nombre as material, SUM(r.cantidad) as total 
+        FROM reciclaje r 
+        JOIN residuos m ON r.residuo_id = m.id 
+        WHERE r.estado = 'aprobado' 
+        GROUP BY m.nombre`;
+    try {
+        const [rows] = await db.query(query);
+        res.json(rows);
+    } catch (err) {
+        // Esto te ayudará a ver el error real en la terminal de VS Code
+        console.error("Error en globales:", err); 
         res.status(500).json({ error: err.message });
     }
 });
@@ -151,10 +148,6 @@ app.put('/usuario/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-// ==========================
-// ♻️ CATÁLOGO DE RESIDUOS
-// ==========================
 app.get('/residuos', async (req, res) => {
     try {
         const [rows] = await db.query('SELECT * FROM residuos ORDER BY id');
@@ -163,10 +156,6 @@ app.get('/residuos', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-// ==========================
-// 📍 UBICACIÓN, ENLACES Y ALERTAS
-// ==========================
 app.get('/ubicacion', async (req, res) => {
     try {
         const [rows] = await db.query('SELECT * FROM ubicaciones LIMIT 1');
@@ -191,6 +180,7 @@ app.get('/alertas', async (req, res) => {
 // ==========================
 // 📊 HISTORIAL DE RECICLAJES
 // ==========================
+// 1. Obtener reciclajes de un alumno específico (Para el historial de Ana)
 app.get('/reciclajes/:usuario_id', async (req, res) => {
     try {
         const [rows] = await db.query('SELECT * FROM reciclaje WHERE usuario_id = ? ORDER BY fecha DESC', [req.params.usuario_id]);
@@ -202,7 +192,49 @@ app.get('/reciclajes/:usuario_id', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Encendido del servidor
+// 2. ADMINISTRACIÓN: PENDIENTES (Para que Pedro valide con foto y nombre de alumno)
+app.get('/admin/pendientes', async (req, res) => {
+    const query = `
+        SELECT 
+            r.id, 
+            u.nombre AS alumno_nombre, 
+            res.nombre AS material, 
+            r.cantidad, 
+            r.foto, 
+            r.fecha
+        FROM reciclaje r
+        JOIN usuarios u ON r.usuario_id = u.id
+        JOIN residuos res ON r.residuo_id = res.id
+        WHERE r.estado = 'pendiente'
+    `;
+    try {
+        const [rows] = await db.query(query);
+        // IMPORTANTE: Esta parte convierte la foto para que se vea en la app
+        const registros = rows.map(r => ({
+            ...r,
+            foto: r.foto ? Buffer.from(r.foto).toString('base64') : null
+        }));
+        res.json(registros);
+    } catch (err) {
+        console.error('Error al obtener pendientes:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 3. VALIDAR O RECHAZAR (La ruta que usa el botón de Pedro)
+app.put('/admin/validar/:id', async (req, res) => {
+    const { id } = req.params;
+    const { estado } = req.body; 
+
+    try {
+        await db.query('UPDATE reciclaje SET estado = ? WHERE id = ?', [estado, id]);
+        res.json({ success: true, mensaje: `Registro ${estado} con éxito` });
+    } catch (err) {
+        console.error('Error al validar:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`✅ Servidor MySQL corriendo en http://localhost:${PORT}`);
 });

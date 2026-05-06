@@ -1,4 +1,9 @@
 <ion-segment [(ngModel)]="selectedSegment">
+  <!-- Nueva pestaña de Validaciones agregada al lado de Perfil -->
+  <ion-segment-button value="validations" *ngIf="esComite() || esAdmin()">
+    <ion-label>Validaciones</ion-label>
+  </ion-segment-button>
+  
   <ion-segment-button value="first">
     <ion-label>Perfil</ion-label>
   </ion-segment-button>
@@ -11,6 +16,51 @@
 </ion-segment>
 
 <ion-segment-view>
+  <!-- NUEVA PESTAÑA: SISTEMA DE VALIDACIONES -->
+  <ion-segment-content id="validations" [hidden]="selectedSegment !== 'validations'">
+    <ion-header class="ion-no-border">
+      <ion-toolbar class="custom-toolbar">
+        <ion-title>SISTEMA DE VALIDACIÓN</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    
+    <ion-content [fullscreen]="true" class="dark-bg">
+      <div class="profile-container">
+        @if (esComite() || esAdmin()) {
+          <ion-card class="neon-card" style="width: 90%; border: 2px solid #ffc409; margin: 20px auto;">
+            <ion-card-header>
+              <ion-card-title class="neon-text" style="color: #ffc409 !important;">🛠 RECOLECTOR: VALIDACIONES</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              @for (p of reciclajesPendientes; track p.id) {
+                <ion-item class="custom-item" lines="full">
+                  <ion-avatar slot="start">
+                    <img [src]="'data:image/jpeg;base64,' + p.foto" />
+                  </ion-avatar>
+                  <ion-label>
+                    <h2 style="font-weight: bold; color: #2e7d32;">{{ p.usuario }}</h2>
+                    <p>{{ p.cantidad }} kg - {{ materiales[p.residuo_id] || 'Otro' }}</p>
+                  </ion-label>
+                  <ion-buttons slot="end">
+                    <ion-button color="success" (click)="validarReciclaje(p.id, 'aprobado')">
+                      <ion-icon name="checkmark-circle-outline"></ion-icon>
+                    </ion-button>
+                    <ion-button color="danger" (click)="validarReciclaje(p.id, 'rechazado')">
+                      <ion-icon name="close-circle-outline"></ion-icon>
+                    </ion-button>
+                  </ion-buttons>
+                </ion-item>
+              } @empty {
+                <p class="ion-text-center">No tienes registros por validar.</p>
+              }
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    </ion-content>
+  </ion-segment-content>
+
+  <!-- PESTAÑA 1: PERFIL (Sin el bloque de validaciones) -->
   <ion-segment-content id="first" [hidden]="selectedSegment !== 'first'">
     <ion-header class="ion-no-border">
       <ion-toolbar class="custom-toolbar">
@@ -129,101 +179,137 @@
           </ion-button>
           }
         </div>
-      </div>
-      }
+        
+        <div style="height: 100px;"></div>
+      </div> }
     </ion-content>
   </ion-segment-content>
 
+  <!-- PESTAÑA 2: RECICLAJES -->
   <ion-segment-content id="second" [hidden]="selectedSegment !== 'second'">
-    <ion-content [fullscreen]="true" class="ion-padding">
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Mis Reciclajes</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
-      @for (r of reciclajesMostrados; track r.id) {
-      <ion-card>
-        <ion-card-header>
-          <ion-card-title>
-            {{ r.residuo_id ? materiales[r.residuo_id] : r.otro_material }}
-          </ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <p><strong>Cantidad:</strong> {{ r.cantidad }} kg</p>
-          <p><strong>Fecha:</strong> {{ r.fecha | date:'short' }}</p>
-          @if (r.foto) {
-          <img [src]="'data:image/jpeg;base64,' + r.foto" style="width:100%; border-radius:8px; margin-top:10px;" />
+    <ion-content [fullscreen]="true" class="ion-padding bg-light">
+      <ion-grid>
+        <ion-row>
+          @for (r of reciclajesMostrados; track r.id) {
+          <ion-col size="6" size-md="4">
+            <ion-card class="mini-reciclaje-card">
+              <div class="image-container">
+                @if (r.foto) {
+                  <img [src]="'data:image/jpeg;base64,' + r.foto" />
+                } @else {
+                  <div class="no-photo">
+                    <ion-icon name="image-outline"></ion-icon>
+                  </div>
+                }
+                <div class="status-overlay">
+                  <ion-badge [color]="r.estado === 'aprobado' ? 'success' : (r.estado === 'rechazado' ? 'danger' : 'warning')">
+                    {{ r.estado || 'Pendiente' }}
+                  </ion-badge>
+                </div>
+              </div>
+              <ion-card-content class="mini-content">
+                <h2 class="material-name">{{ r.residuo_id ? materiales[r.residuo_id] : r.otro_material }}</h2>
+                <div class="info-row">
+                  <span class="badge-peso">{{ r.cantidad }} kg</span>
+                </div>
+                <p class="fecha-mini">{{ r.fecha | date:'dd/MM/yy' }}</p>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+          } @empty {
+          <ion-col size="12">
+            <div style="text-align:center; margin-top:40px; color:#666;">
+              <ion-icon name="leaf-outline" style="font-size: 3em; opacity: 0.3;"></ion-icon>
+              <p>No tienes registros de reciclaje aún.</p>
+            </div>
+          </ion-col>
           }
-        </ion-card-content>
-      </ion-card>
-      } @empty {
-      <div style="text-align:center; margin-top:20px; color:#666;">
-        <p>No tienes registros de reciclaje aún.</p>
-      </div>
-      }
+        </ion-row>
+      </ion-grid>
     </ion-content>
   </ion-segment-content>
 
+  <!-- PESTAÑA 3: ESTADÍSTICAS -->
   <ion-segment-content id="third" [hidden]="selectedSegment !== 'third'">
     <ion-content [fullscreen]="true" class="ion-padding">
+      @if (esAdmin() || esComite()) {
+        <ion-card style="border: 2px solid #3880ff; border-radius: 15px; background: #f4f5f8; margin-bottom: 20px;">
+          <ion-card-header>
+            <ion-card-title style="color: #3880ff; font-weight: bold;">📊 Seguimiento del Plantel</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item lines="none" style="--background: transparent; margin-bottom: 15px;">
+              <ion-label>
+                <h2 style="color: #3880ff; font-weight: bold; font-size: 0.9em;">
+                  OBJETIVO DEL TELEBACHILLERATO: {{ metaPlantel }} kg
+                </h2>
+                <ion-progress-bar color="primary" [value]="totalGlobal / metaPlantel" style="height: 12px; border-radius: 6px;"></ion-progress-bar>
+                <p style="text-align: right; margin-top: 5px; font-weight: bold;">
+                  {{ (totalGlobal / metaPlantel * 100).toFixed(1) }}%
+                </p>
+              </ion-label>
+            </ion-item>
+            <div style="height: 250px; position: relative;">
+              <canvas id="canvasGraficaGlobal"></canvas>
+            </div>
+            @for (g of estadisticasGlobales; track g.material) {
+              <ion-item lines="full">
+                <ion-label>{{ g.material }}</ion-label>
+                <ion-badge slot="end" color="primary">{{ g.total }} kg</ion-badge>
+              </ion-item>
+            }
+          </ion-card-content>
+        </ion-card>
+      }
 
-      @if (usuario?.rol === 'admin' || usuario?.rol === 'evaluacion') {
-      <ion-card style="border: 2px solid #3880ff; border-radius: 15px; background: #f4f5f8; margin-bottom: 20px;">
-        <ion-card-header>
-          <ion-card-title style="color: #3880ff; font-weight: bold;">
-            📊 Seguimiento del Plantel
-          </ion-card-title>
-        </ion-card-header>
+      <ion-card class="neon-card" style="background: #1e1e1e; border: 1px solid #2dd36f; border-radius: 15px; margin-bottom: 20px;">
         <ion-card-content>
-          <div style="height: 250px; width: 100%; position: relative; margin: 0 auto;">
-            <canvas id="canvasGraficaGlobal"></canvas>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="color: #2dd36f; font-weight: bold; letter-spacing: 1px;">MI META MENSUAL</span>
+            <span style="color: white; font-weight: bold;">{{ obtenerTotalGeneral() }} / 20 kg</span>
           </div>
-
-          <p style="margin-top: 15px; font-weight: bold;">Resultados acumulados:</p>
-          @for (g of estadisticasGlobales; track g.material) {
-          <ion-item lines="full">
-            <ion-label>{{ g.material }}</ion-label>
-            <ion-badge slot="end" color="primary">{{ g.total }} kg</ion-badge>
-          </ion-item>
-          }
+          <div style="background: #333; border-radius: 10px; height: 16px; overflow: hidden; border: 1px solid #2dd36f; box-shadow: 0 0 5px rgba(45, 211, 111, 0.2);">
+            <div [style.width.%]="(obtenerTotalGeneral() / 20) * 100" 
+                 style="background: linear-gradient(90deg, #2dd36f, #00ff88); height: 100%; transition: width 0.8s ease-in-out; box-shadow: 0 0 10px #2dd36f;">
+            </div>
+          </div>
+          <p style="font-size: 0.8em; text-align: center; margin-top: 10px; color: #aaa;">
+            @if (obtenerTotalGeneral() < 20) {
+              Te faltan <strong>{{ 20 - obtenerTotalGeneral() }} kg</strong> para alcanzar tu objetivo.
+            } @else {
+              ✨ ¡Meta cumplida! Has transformado el plantel con éxito.
+            }
+          </p>
         </ion-card-content>
       </ion-card>
-      }
 
       <ion-card style="background: linear-gradient(135deg, #2dd36f, #1a7a3e); color: white; border-radius: 15px; margin-bottom: 20px;">
         <ion-card-content class="ion-text-center">
-          <h3 style="margin: 0; opacity: 0.9; text-transform: uppercase; font-size: 0.8em;">Mi Aportación Personal</h3>
-          <h1 style="font-size: 3em; font-weight: bold; margin: 5px 0;">
-            {{ obtenerTotalGeneral() }} <small style="font-size: 0.4em;">kg</small>
-          </h1>
+          <h3 style="margin: 0; opacity: 0.9; text-transform: uppercase; font-size: 0.8em;">Aportación Actual</h3>
+          <h1 style="font-size: 3em; font-weight: bold; margin: 5px 0;">{{ obtenerTotalGeneral() }} kg</h1>
         </ion-card-content>
       </ion-card>
 
       <ion-card style="border-radius: 15px; background: white; margin-bottom: 20px;">
         <ion-card-header>
-          <ion-card-title style="color: #333;">Progreso Visual</ion-card-title>
+          <ion-card-title>Desglose por Material</ion-card-title>
         </ion-card-header>
         <ion-card-content>
-          <div style="height: 250px; width: 100%; position: relative; margin: 0 auto;">
+          <div style="height: 250px; position: relative;">
             <canvas id="canvasGrafica"></canvas>
           </div>
         </ion-card-content>
       </ion-card>
 
       @for (e of estadisticasMostradas; track e.material) {
-      <ion-card style="border-radius: 12px; border-left: 10px solid; margin-bottom: 10px;" [style.border-color]="obtenerColor(e.material)">
-        <ion-card-header>
-          <ion-card-title style="font-size: 1.1em; font-weight: bold;">{{ e.material }}</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <p><strong>Total reciclado:</strong> {{ e.total }} kg</p>
-        </ion-card-content>
-      </ion-card>
-      } @empty {
-      <div style="text-align:center; margin-top:20px; color:#666;">
-        <p>No tienes estadísticas personales aún.</p>
-      </div>
+        <ion-card style="border-radius: 12px; border-left: 10px solid; margin-bottom: 10px;" [style.border-color]="obtenerColor(e.material)">
+          <ion-card-header>
+            <ion-card-title style="font-size: 1.1em; font-weight: bold;">{{ e.material }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p><strong>Total reciclado:</strong> {{ e.total }} kg</p>
+          </ion-card-content>
+        </ion-card>
       }
     </ion-content>
   </ion-segment-content>
