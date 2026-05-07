@@ -185,50 +185,58 @@
     </ion-content>
   </ion-segment-content>
 
-  <!-- PESTAÑA 2: RECICLAJES -->
-  <ion-segment-content id="second" [hidden]="selectedSegment !== 'second'">
-    <ion-content [fullscreen]="true" class="ion-padding bg-light">
-      <ion-grid>
-        <ion-row>
-          @for (r of reciclajesMostrados; track r.id) {
-          <ion-col size="6" size-md="4">
-            <ion-card class="mini-reciclaje-card">
-              <div class="image-container">
-                @if (r.foto) {
-                  <img [src]="'data:image/jpeg;base64,' + r.foto" />
-                } @else {
-                  <div class="no-photo">
-                    <ion-icon name="image-outline"></ion-icon>
-                  </div>
-                }
-                <div class="status-overlay">
-                  <ion-badge [color]="r.estado === 'aprobado' ? 'success' : (r.estado === 'rechazado' ? 'danger' : 'warning')">
-                    {{ r.estado || 'Pendiente' }}
-                  </ion-badge>
-                </div>
-              </div>
-              <ion-card-content class="mini-content">
-                <h2 class="material-name">{{ r.residuo_id ? materiales[r.residuo_id] : r.otro_material }}</h2>
-                <div class="info-row">
-                  <span class="badge-peso">{{ r.cantidad }} kg</span>
-                </div>
-                <p class="fecha-mini">{{ r.fecha | date:'dd/MM/yy' }}</p>
-              </ion-card-content>
-            </ion-card>
-          </ion-col>
-          } @empty {
-          <ion-col size="12">
-            <div style="text-align:center; margin-top:40px; color:#666;">
-              <ion-icon name="leaf-outline" style="font-size: 3em; opacity: 0.3;"></ion-icon>
-              <p>No tienes registros de reciclaje aún.</p>
-            </div>
-          </ion-col>
-          }
-        </ion-row>
-      </ion-grid>
-    </ion-content>
-  </ion-segment-content>
+  <!-- PESTAÑA 2: RECICLAJES - VERSIÓN CORREGIDA -->
+<ion-segment-content id="second" [hidden]="selectedSegment !== 'second'">
+  <ion-content [fullscreen]="true" class="ion-padding bg-light">
+    
+    <!-- Total -->
+    <ion-card style="background: #2e7d32; color: white; margin-bottom: 15px;">
+      <ion-card-content class="ion-text-center">
+        <strong>📊 Total reciclajes: {{ reciclajes.length }}</strong>
+      </ion-card-content>
+    </ion-card>
 
+    <!-- Tarjetas en grid - Versión corregida -->
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+      @for (r of reciclajesMostrados; track r.id) {
+        <div style="width: calc(50% - 5px); max-width: 200px;">
+          <ion-card class="mini-reciclaje-card" style="margin: 0;">
+            <div class="image-container" style="position: relative; height: 120px;">
+              @if (r.foto) {
+                <img [src]="'data:image/jpeg;base64,' + r.foto" style="width: 100%; height: 100%; object-fit: cover;">
+              } @else {
+                <div class="no-photo" style="height: 100%; display: flex; align-items: center; justify-content: center;">
+                  <ion-icon name="image-outline" style="font-size: 40px; color: #ccc;"></ion-icon>
+                </div>
+              }
+              <div class="status-overlay" style="position: absolute; top: 5px; right: 5px;">
+                <ion-badge [color]="r.estado === 'aprobado' ? 'success' : (r.estado === 'rechazado' ? 'danger' : 'warning')">
+                  {{ r.estado || 'Pendiente' }}
+                </ion-badge>
+              </div>
+            </div>
+            <ion-card-content class="mini-content" style="padding: 8px; text-align: center;">
+              <h2 class="material-name" style="font-size: 14px; font-weight: bold; margin: 0;">
+                {{ r.residuo_id ? materiales[r.residuo_id] : r.otro_material }}
+              </h2>
+              <div class="info-row" style="margin: 5px 0;">
+                <span class="badge-peso" style="background: #e8f5e9; padding: 2px 8px; border-radius: 12px; font-size: 12px;">
+                  {{ r.cantidad }} kg
+                </span>
+              </div>
+              <p class="fecha-mini" style="font-size: 10px; color: #666; margin: 0;">{{ r.fecha | date:'dd/MM/yy' }}</p>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      }
+    </div>
+
+    <ion-infinite-scroll (ionInfinite)="cargarMasReciclajes($event)">
+      <ion-infinite-scroll-content></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+
+  </ion-content>
+</ion-segment-content>
   <!-- PESTAÑA 3: ESTADÍSTICAS -->
   <ion-segment-content id="third" [hidden]="selectedSegment !== 'third'">
     <ion-content [fullscreen]="true" class="ion-padding">

@@ -53,12 +53,12 @@ app.post('/register', async (req, res) => {
 // ♻️ RECICLAJE (TAB1)
 // ==========================
 app.post('/reciclaje', async (req, res) => {
-    const { residuo_id, cantidad, usuario_id, otro_material, foto } = req.body;
+    const { residuo_id, cantidad, usuario_id, otro_material, foto, recolector_id } = req.body;
     try {
         const fotoBuffer = foto ? Buffer.from(foto, 'base64') : null;
         await db.query(
-            'INSERT INTO reciclaje (residuo_id, cantidad, usuario_id, otro_material, foto) VALUES (?, ?, ?, ?, ?)',
-            [residuo_id || null, cantidad, usuario_id, otro_material || null, fotoBuffer]
+            'INSERT INTO reciclaje (residuo_id, cantidad, usuario_id, otro_material, foto, recolector_id) VALUES (?, ?, ?, ?, ?, ?)',
+            [residuo_id || null, cantidad, usuario_id, otro_material || null, fotoBuffer, recolector_id || null]
         );
         res.json({ success: true, mensaje: 'Reciclaje guardado' });
     } catch (err) {
@@ -183,44 +183,57 @@ app.get('/alertas', async (req, res) => {
 // 1. Obtener reciclajes de un alumno específico (Para el historial de Ana)
 app.get('/reciclajes/:usuario_id', async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM reciclaje WHERE usuario_id = ? ORDER BY fecha DESC', [req.params.usuario_id]);
+        const [rows] = await db.query(
+            'SELECT * FROM reciclaje WHERE usuario_id = ? ORDER BY fecha DESC', 
+            [req.params.usuario_id]
+        );
         const registros = rows.map(r => ({
             ...r,
             foto: r.foto ? Buffer.from(r.foto).toString('base64') : null
         }));
         res.json(registros);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 // 2. ADMINISTRACIÓN: PENDIENTES (Para que Pedro valide con foto y nombre de alumno)
+// Ruta para obtener TODOS los pendientes (admin)
+// 1. ADMIN: Obtener TODOS los pendientes (para super admin)
+// GET /admin/pendientes - Devuelve TODOS los pendientes (para que el recolector los valide)
 app.get('/admin/pendientes', async (req, res) => {
     const query = `
         SELECT 
             r.id, 
-            u.nombre AS alumno_nombre, 
+            u.nombre AS alumno_nombre,
+            u.usuario,
+            u.id AS usuario_id,
             res.nombre AS material, 
+            res.id AS residuo_id,
             r.cantidad, 
             r.foto, 
-            r.fecha
+            r.fecha,
+            r.estado
         FROM reciclaje r
         JOIN usuarios u ON r.usuario_id = u.id
         JOIN residuos res ON r.residuo_id = res.id
         WHERE r.estado = 'pendiente'
+        ORDER BY r.fecha DESC
     `;
+    
     try {
         const [rows] = await db.query(query);
-        // IMPORTANTE: Esta parte convierte la foto para que se vea en la app
         const registros = rows.map(r => ({
             ...r,
             foto: r.foto ? Buffer.from(r.foto).toString('base64') : null
         }));
+        console.log('📋 Pendientes encontrados:', registros.length);
         res.json(registros);
     } catch (err) {
         console.error('Error al obtener pendientes:', err);
         res.status(500).json({ error: err.message });
     }
 });
-
 // 3. VALIDAR O RECHAZAR (La ruta que usa el botón de Pedro)
 app.put('/admin/validar/:id', async (req, res) => {
     const { id } = req.params;
@@ -231,6 +244,22 @@ app.put('/admin/validar/:id', async (req, res) => {
         res.json({ success: true, mensaje: `Registro ${estado} con éxito` });
     } catch (err) {
         console.error('Error al validar:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+// Asignar un recolector a un reciclaje pendiente
+app.put('/admin/asignar-recolector/:reciclaje_id', async (req, res) => {
+    const { reciclaje_id } = req.params;
+    const { recolector_id } = req.body;
+    
+    try {
+        await db.query(
+            'UPDATE reciclaje SET recolector_id = ? WHERE id = ?', 
+            [recolector_id, reciclaje_id]
+        );
+        res.json({ success: true, mensaje: 'Recolector asignado correctamente' });
+    } catch (err) {
+        console.error('Error al asignar recolector:', err);
         res.status(500).json({ error: err.message });
     }
 });

@@ -105,17 +105,12 @@ export class Tab5Page implements OnInit {
     });
   }
 
-  ngOnInit() {
-    this.obtenerUsuario();
-    this.obtenerReciclajes();
-    this.obtenerEstadisticas();
-    this.obtenerEstadisticasGlobales();
-
-    const usuarioLog = JSON.parse(localStorage.getItem('usuario') || '{}');
-    if (usuarioLog.rol === 'comite' || usuarioLog.rol === 'evaluacion' || usuarioLog.rol === 'admin' || usuarioLog.rol === 'usuario') {
-      this.obtenerPendientes();
-    }
-  }
+ngOnInit() {
+  this.obtenerUsuario();
+  this.obtenerReciclajes(); // Este ya llama a obtenerPendientes si es necesario
+  this.obtenerEstadisticas();
+  this.obtenerEstadisticasGlobales();
+}
 
   // --- LÓGICA DE ROLES (INTACTA) ---
   esAdmin(): boolean { return this.usuario?.rol === 'admin'; }
@@ -132,12 +127,16 @@ export class Tab5Page implements OnInit {
   }
 
   // --- GESTIÓN DE DATOS ---
-  obtenerPendientes() {
-    this.http.get<any[]>(`${this.apiAdmin}/pendientes`).subscribe({
-      next: (data) => this.reciclajesPendientes = data || [],
-      error: (err) => console.error('Error al cargar pendientes:', err)
-    });
-  }
+ obtenerPendientes() {
+  // NO filtres por ID, trae TODOS los pendientes
+  this.http.get<any[]>(`${this.apiAdmin}/pendientes`).subscribe({
+    next: (data) => {
+      this.reciclajesPendientes = data || [];
+      console.log('📋 Pendientes para validar:', this.reciclajesPendientes.length);
+    },
+    error: (err) => console.error('Error al cargar pendientes:', err)
+  });
+}
 
   validarReciclaje(id: number, estado: string) {
     this.http.put(`http://localhost:3000/admin/validar/${id}`, { estado }).subscribe({
@@ -184,24 +183,41 @@ obtenerEstadisticas() {
     });
   }
 
- obtenerReciclajes() {
+obtenerReciclajes() {
   const usuarioLog = JSON.parse(localStorage.getItem('usuario') || '{}');
-  if (!usuarioLog.id) return;
-
-  this.http.get<any[]>(`${this.apiReciclajes}/${usuarioLog.id}`).subscribe({
+  console.log('🔍 [DEBUG] usuarioLog:', usuarioLog);
+  console.log('🔍 [DEBUG] usuarioLog.id:', usuarioLog.id);
+  
+  if (!usuarioLog.id) {
+    console.error('❌ No hay ID de usuario');
+    return;
+  }
+  
+  const url = `${this.apiReciclajes}/${usuarioLog.id}`;
+  console.log('📡 [DEBUG] Llamando a:', url);
+  
+  this.http.get<any[]>(url).subscribe({
     next: (data) => {
-      const todosLosDatos = data || [];
-      this.reciclajes = todosLosDatos.filter(r => r.usuario_id === usuarioLog.id);
+      console.log('✅ [DEBUG] Reciclajes recibidos:', data);
+      console.log('✅ [DEBUG] Cantidad de registros:', data?.length);
+      
+      if (data && data.length > 0) {
+        console.log('✅ [DEBUG] Primer registro:', data[0]);
+      }
+      
+      this.reciclajes = data || [];
       this.reciclajesMostrados = this.reciclajes.slice(0, this.batchSize);
-
-      if (this.esAdmin() || this.esComite()) {
-        this.reciclajesPendientes = todosLosDatos.filter(r => r.estado === 'pendiente');
+      console.log('✅ [DEBUG] reciclajesMostrados:', this.reciclajesMostrados.length);
+      
+      if (this.esComite() || this.esAdmin()) {
+        this.obtenerPendientes();
       }
     },
-    error: (err) => console.error('Error al cargar reciclajes:', err)
+    error: (err) => {
+      console.error('❌ [DEBUG] Error:', err);
+    }
   });
 }
-
   obtenerEstadisticasGlobales() {
     this.http.get<any[]>('http://localhost:3000/admin/estadisticas-globales').subscribe({
       next: (data) => {
