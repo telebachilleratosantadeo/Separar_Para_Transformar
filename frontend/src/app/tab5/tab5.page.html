@@ -1,9 +1,9 @@
 <ion-segment [(ngModel)]="selectedSegment">
-  <!-- Nueva pestaña de Validaciones agregada al lado de Perfil -->
-  <ion-segment-button value="validations" *ngIf="esComite() || esAdmin()">
-    <ion-label>Validaciones</ion-label>
-  </ion-segment-button>
-  
+  @if (esComite() || esAdmin()) {
+    <ion-segment-button value="validations">
+      <ion-label>Validaciones</ion-label>
+    </ion-segment-button>
+  }
   <ion-segment-button value="first">
     <ion-label>Perfil</ion-label>
   </ion-segment-button>
@@ -16,52 +16,87 @@
 </ion-segment>
 
 <ion-segment-view>
-  <!-- NUEVA PESTAÑA: SISTEMA DE VALIDACIONES -->
-  <ion-segment-content id="validations" [hidden]="selectedSegment !== 'validations'">
-    <ion-header class="ion-no-border">
-      <ion-toolbar class="custom-toolbar">
-        <ion-title>SISTEMA DE VALIDACIÓN</ion-title>
-      </ion-toolbar>
-    </ion-header>
-    
-    <ion-content [fullscreen]="true" class="dark-bg">
-      <div class="profile-container">
-        @if (esComite() || esAdmin()) {
-          <ion-card class="neon-card" style="width: 90%; border: 2px solid #ffc409; margin: 20px auto;">
-            <ion-card-header>
-              <ion-card-title class="neon-text" style="color: #ffc409 !important;">🛠 RECOLECTOR: VALIDACIONES</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              @for (p of reciclajesPendientes; track p.id) {
-                <ion-item class="custom-item" lines="full">
-                  <ion-avatar slot="start">
-                    <img [src]="'data:image/jpeg;base64,' + p.foto" />
-                  </ion-avatar>
-                  <ion-label>
-                    <h2 style="font-weight: bold; color: #2e7d32;">{{ p.usuario }}</h2>
-                    <p>{{ p.cantidad }} kg - {{ materiales[p.residuo_id] || 'Otro' }}</p>
-                  </ion-label>
-                  <ion-buttons slot="end">
-                    <ion-button color="success" (click)="validarReciclaje(p.id, 'aprobado')">
-                      <ion-icon name="checkmark-circle-outline"></ion-icon>
-                    </ion-button>
-                    <ion-button color="danger" (click)="validarReciclaje(p.id, 'rechazado')">
-                      <ion-icon name="close-circle-outline"></ion-icon>
-                    </ion-button>
-                  </ion-buttons>
-                </ion-item>
-              } @empty {
-                <p class="ion-text-center">No tienes registros por validar.</p>
+  
+   <!-- Pestaña Validaciones -->
+  @if (selectedSegment === 'validations' && (esComite() || esAdmin())) {
+    <ion-content [fullscreen]="true" class="ion-padding">
+      <div class="validations-container">
+        <!-- Tarjeta de resumen -->
+        <ion-card style="background: linear-gradient(135deg, #ffc409, #ff8c00); margin: 20px auto; width: 90%;">
+          <ion-card-content class="ion-text-center">
+            <ion-icon name="checkmark-circle-outline" style="font-size: 32px; color: white;"></ion-icon>
+            <h2 style="color: white; margin: 5px 0; font-weight: bold;">Validaciones Pendientes</h2>
+            <p style="color: white; font-size: 24px; font-weight: bold; margin: 0;">{{ reciclajesPendientes.length }}</p>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Lista de validaciones -->
+        @for (p of reciclajesPendientes; track p.id) {
+          <ion-card style="width: 90%; margin: 15px auto; border-radius: 15px; overflow: hidden;">
+            <!-- cabecera del alumno -->
+            <div style="background: #2e7d32; padding: 12px; display: flex; align-items: center; gap: 12px;">
+              <ion-avatar style="width: 50px; height: 50px; border: 2px solid #ffc409;">
+                <img [src]="'data:image/jpeg;base64,' + p.foto" />
+              </ion-avatar>
+              <div style="color: white;">
+                <h3 style="margin: 0; font-weight: bold;">{{ p.usuario || p.alumno_nombre }}</h3>
+                <p style="margin: 0; font-size: 12px; opacity: 0.9;">ID: {{ p.usuario_id }}</p>
+              </div>
+            </div>
+            <!-- Contenido -->
+            <ion-card-content style="padding: 15px;">
+              <!-- material y cantidad -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div>
+                  <ion-icon name="cube-outline" style="font-size: 24px; color: #2e7d32; vertical-align: middle;"></ion-icon>
+                  <span style="font-size: 18px; font-weight: bold; margin-left: 8px;">{{ p.material || materiales[p.residuo_id] || p.otro_material || 'Otro' }}</span>
+                </div>
+                <div style="background: #e8f5e9; padding: 8px 12px; border-radius: 20px;">
+                  <span style="font-size: 20px; font-weight: bold; color: #2e7d32;">{{ p.cantidad }} kg</span>
+                </div>
+              </div>
+              <!-- fecha -->
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; color: #666;">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>{{ p.fecha | date:'dd/MM/yyyy h:mm a' }}</span>
+              </div>
+              <!-- foto -->
+              @if (p.foto) {
+                <div style="margin-bottom: 15px;">
+                  <div style="font-size: 12px; color: #666; margin-bottom: 5px;">📸 Evidencia:</div>
+                  <img [src]="'data:image/jpeg;base64,' + p.foto" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; cursor: pointer;"
+                       (click)="abrirModal('data:image/jpeg;base64,' + p.foto)" />
+                </div>
+              } @else {
+                <div style="background: #f5f5f5; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 15px;">
+                  <ion-icon name="camera-outline" style="font-size: 32px; color: #ccc;"></ion-icon>
+                  <p style="margin: 5px 0 0; color: #999;">Sin foto de evidencia</p>
+                </div>
               }
+              <!-- botones -->
+              <div style="display: flex; gap: 12px; margin-top: 10px;">
+                <ion-button expand="block" color="success" (click)="validarReciclaje(p.id, 'aprobado')" style="flex: 1;">
+                  <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon> APROBAR
+                </ion-button>
+                <ion-button expand="block" color="danger" (click)="validarReciclaje(p.id, 'rechazado')" style="flex: 1;">
+                  <ion-icon slot="start" name="close-circle-outline"></ion-icon> RECHAZAR
+                </ion-button>
+              </div>
             </ion-card-content>
+          </ion-card>
+        } @empty {
+          <ion-card style="width: 90%; margin: 20px auto; text-align: center; padding: 30px;">
+            <ion-icon name="checkmark-done-circle-outline" style="font-size: 64px; color: #2e7d32;"></ion-icon>
+            <h3 style="color: #2e7d32;">¡Todo validado!</h3>
+            <p>No hay registros pendientes por validar.</p>
           </ion-card>
         }
       </div>
     </ion-content>
-  </ion-segment-content>
+  }
 
-  <!-- PESTAÑA 1: PERFIL (Sin el bloque de validaciones) -->
-  <ion-segment-content id="first" [hidden]="selectedSegment !== 'first'">
+  <!-- PESTAÑA 1: PERFIL -->
+  <div [style.display]="selectedSegment === 'first' ? 'block' : 'none'">
     <ion-header class="ion-no-border">
       <ion-toolbar class="custom-toolbar">
         <ion-title>PERFIL DE USUARIO</ion-title>
@@ -183,62 +218,63 @@
         <div style="height: 100px;"></div>
       </div> }
     </ion-content>
-  </ion-segment-content>
+  </div>
 
-  <!-- PESTAÑA 2: RECICLAJES - VERSIÓN CORREGIDA -->
-<ion-segment-content id="second" [hidden]="selectedSegment !== 'second'">
-  <ion-content [fullscreen]="true" class="ion-padding bg-light">
-    
-    <!-- Total -->
-    <ion-card style="background: #2e7d32; color: white; margin-bottom: 15px;">
-      <ion-card-content class="ion-text-center">
-        <strong>📊 Total reciclajes: {{ reciclajes.length }}</strong>
-      </ion-card-content>
-    </ion-card>
+  <!-- PESTAÑA 2: RECICLAJES -->
+  <div [style.display]="selectedSegment === 'second' ? 'block' : 'none'">
+    <ion-content [fullscreen]="true" class="ion-padding bg-light">
+      
+      <!-- Total -->
+      <ion-card style="background: #2e7d32; color: white; margin-bottom: 15px;">
+        <ion-card-content class="ion-text-center">
+          <strong>📊 Total reciclajes: {{ reciclajes.length }}</strong>
+        </ion-card-content>
+      </ion-card>
 
-    <!-- Tarjetas en grid - Versión corregida -->
-    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-      @for (r of reciclajesMostrados; track r.id) {
-        <div style="width: calc(50% - 5px); max-width: 200px;">
-          <ion-card class="mini-reciclaje-card" style="margin: 0;">
-            <div class="image-container" style="position: relative; height: 120px;">
-              @if (r.foto) {
-                <img [src]="'data:image/jpeg;base64,' + r.foto" style="width: 100%; height: 100%; object-fit: cover;">
-              } @else {
-                <div class="no-photo" style="height: 100%; display: flex; align-items: center; justify-content: center;">
-                  <ion-icon name="image-outline" style="font-size: 40px; color: #ccc;"></ion-icon>
+      <!-- Tarjetas en grid -->
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+        @for (r of reciclajesMostrados; track r.id) {
+          <div style="width: calc(50% - 5px); max-width: 200px;">
+            <ion-card class="mini-reciclaje-card" style="margin: 0;">
+              <div class="image-container" style="position: relative; height: 120px;">
+                @if (r.foto) {
+                  <img [src]="'data:image/jpeg;base64,' + r.foto" style="width: 100%; height: 100%; object-fit: cover;">
+                } @else {
+                  <div class="no-photo" style="height: 100%; display: flex; align-items: center; justify-content: center;">
+                    <ion-icon name="image-outline" style="font-size: 40px; color: #ccc;"></ion-icon>
+                  </div>
+                }
+                <div class="status-overlay" style="position: absolute; top: 5px; right: 5px;">
+                  <ion-badge [color]="r.estado === 'aprobado' ? 'success' : (r.estado === 'rechazado' ? 'danger' : 'warning')">
+                    {{ r.estado || 'Pendiente' }}
+                  </ion-badge>
                 </div>
-              }
-              <div class="status-overlay" style="position: absolute; top: 5px; right: 5px;">
-                <ion-badge [color]="r.estado === 'aprobado' ? 'success' : (r.estado === 'rechazado' ? 'danger' : 'warning')">
-                  {{ r.estado || 'Pendiente' }}
-                </ion-badge>
               </div>
-            </div>
-            <ion-card-content class="mini-content" style="padding: 8px; text-align: center;">
-              <h2 class="material-name" style="font-size: 14px; font-weight: bold; margin: 0;">
-                {{ r.residuo_id ? materiales[r.residuo_id] : r.otro_material }}
-              </h2>
-              <div class="info-row" style="margin: 5px 0;">
-                <span class="badge-peso" style="background: #e8f5e9; padding: 2px 8px; border-radius: 12px; font-size: 12px;">
-                  {{ r.cantidad }} kg
-                </span>
-              </div>
-              <p class="fecha-mini" style="font-size: 10px; color: #666; margin: 0;">{{ r.fecha | date:'dd/MM/yy' }}</p>
-            </ion-card-content>
-          </ion-card>
-        </div>
-      }
-    </div>
+              <ion-card-content class="mini-content" style="padding: 8px; text-align: center;">
+                <h2 class="material-name" style="font-size: 14px; font-weight: bold; margin: 0;">
+                  {{ r.residuo_id ? materiales[r.residuo_id] : r.otro_material }}
+                </h2>
+                <div class="info-row" style="margin: 5px 0;">
+                  <span class="badge-peso" style="background: #e8f5e9; padding: 2px 8px; border-radius: 12px; font-size: 12px;">
+                    {{ r.cantidad }} kg
+                  </span>
+                </div>
+                <p class="fecha-mini" style="font-size: 10px; color: #666; margin: 0;">{{ r.fecha | date:'dd/MM/yy' }}</p>
+              </ion-card-content>
+            </ion-card>
+          </div>
+        }
+      </div>
 
-    <ion-infinite-scroll (ionInfinite)="cargarMasReciclajes($event)">
-      <ion-infinite-scroll-content></ion-infinite-scroll-content>
-    </ion-infinite-scroll>
+      <ion-infinite-scroll (ionInfinite)="cargarMasReciclajes($event)">
+        <ion-infinite-scroll-content></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
 
-  </ion-content>
-</ion-segment-content>
+    </ion-content>
+  </div>
+
   <!-- PESTAÑA 3: ESTADÍSTICAS -->
-  <ion-segment-content id="third" [hidden]="selectedSegment !== 'third'">
+  <div [style.display]="selectedSegment === 'third' ? 'block' : 'none'">
     <ion-content [fullscreen]="true" class="ion-padding">
       @if (esAdmin() || esComite()) {
         <ion-card style="border: 2px solid #3880ff; border-radius: 15px; background: #f4f5f8; margin-bottom: 20px;">
@@ -320,5 +356,18 @@
         </ion-card>
       }
     </ion-content>
-  </ion-segment-content>
+  </div>
 </ion-segment-view>
+
+<!-- Modal para ver foto en grande -->
+<ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()">
+  <ng-template>
+    <div class="modal-container">
+      <h2>Evidencia del Reciclaje</h2>
+      <img [src]="fotoGrande" style="max-width: 100%; max-height: 70vh; border-radius: 12px;" />
+      <ion-button (click)="cerrarModal()" color="medium" expand="block" style="margin-top: 20px;">
+        Cerrar
+      </ion-button>
+    </div>
+  </ng-template>
+</ion-modal>

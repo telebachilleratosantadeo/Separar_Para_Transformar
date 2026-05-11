@@ -1,19 +1,14 @@
 const express = require('express');
 const cors = require('cors');
-const db = require('./database'); // Tu conexión a MySQL
+const db = require('./database'); 
 
 const app = express();
 
-// Middlewares
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 const PORT = 3000;
-
-// ==========================
-// 🔐 LOGIN
-// ==========================
 app.post('/login', async (req, res) => {
     const { curp, password } = req.body;
     try {
@@ -31,9 +26,6 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// ==========================
-// 👤 REGISTRO
-// ==========================
 app.post('/register', async (req, res) => {
     const { nombre, apellidos, usuario, email, password, curp, rol, foto } = req.body;
     try {
@@ -49,9 +41,6 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// ==========================
-// ♻️ RECICLAJE (TAB1)
-// ==========================
 app.post('/reciclaje', async (req, res) => {
     const { residuo_id, cantidad, usuario_id, otro_material, foto, recolector_id } = req.body;
     try {
@@ -95,15 +84,11 @@ app.get('/admin/estadisticas-globales', async (req, res) => {
         const [rows] = await db.query(query);
         res.json(rows);
     } catch (err) {
-        // Esto te ayudará a ver el error real en la terminal de VS Code
         console.error("Error en globales:", err); 
         res.status(500).json({ error: err.message });
     }
 });
 
-// ==========================
-// 📊 IMPACTO TOTAL
-// ==========================
 app.get('/impacto-total/:usuario_id', async (req, res) => {
     const { usuario_id } = req.params;
     try {
@@ -114,9 +99,7 @@ app.get('/impacto-total/:usuario_id', async (req, res) => {
     }
 });
 
-// ==========================
-// 👤 PERFIL DE USUARIO
-// ==========================
+//perfil usuario
 app.get('/usuario/:id', async (req, res) => {
     try {
         const [rows] = await db.query('SELECT * FROM usuarios WHERE id = ?', [req.params.id]);
@@ -177,10 +160,7 @@ app.get('/alertas', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ==========================
-// 📊 HISTORIAL DE RECICLAJES
-// ==========================
-// 1. Obtener reciclajes de un alumno específico (Para el historial de Ana)
+//historial de reciclajes de un usuario
 app.get('/reciclajes/:usuario_id', async (req, res) => {
     try {
         const [rows] = await db.query(
@@ -197,10 +177,6 @@ app.get('/reciclajes/:usuario_id', async (req, res) => {
     }
 });
 
-// 2. ADMINISTRACIÓN: PENDIENTES (Para que Pedro valide con foto y nombre de alumno)
-// Ruta para obtener TODOS los pendientes (admin)
-// 1. ADMIN: Obtener TODOS los pendientes (para super admin)
-// GET /admin/pendientes - Devuelve TODOS los pendientes (para que el recolector los valide)
 app.get('/admin/pendientes', async (req, res) => {
     const query = `
         SELECT 
@@ -208,15 +184,16 @@ app.get('/admin/pendientes', async (req, res) => {
             u.nombre AS alumno_nombre,
             u.usuario,
             u.id AS usuario_id,
-            res.nombre AS material, 
-            res.id AS residuo_id,
+            COALESCE(res.nombre, r.otro_material, 'Otro material') AS material, 
+            r.residuo_id,
+            r.otro_material,
             r.cantidad, 
             r.foto, 
             r.fecha,
             r.estado
         FROM reciclaje r
         JOIN usuarios u ON r.usuario_id = u.id
-        JOIN residuos res ON r.residuo_id = res.id
+        LEFT JOIN residuos res ON r.residuo_id = res.id
         WHERE r.estado = 'pendiente'
         ORDER BY r.fecha DESC
     `;
@@ -234,7 +211,6 @@ app.get('/admin/pendientes', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-// 3. VALIDAR O RECHAZAR (La ruta que usa el botón de Pedro)
 app.put('/admin/validar/:id', async (req, res) => {
     const { id } = req.params;
     const { estado } = req.body; 
@@ -247,7 +223,6 @@ app.put('/admin/validar/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-// Asignar un recolector a un reciclaje pendiente
 app.put('/admin/asignar-recolector/:reciclaje_id', async (req, res) => {
     const { reciclaje_id } = req.params;
     const { recolector_id } = req.body;

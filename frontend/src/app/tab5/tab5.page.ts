@@ -3,12 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
-// --- AGREGADO PARA LA GRÁFICA ---
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
-// --------------------------------
 
-// Ionic
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonAvatar, IonItem, IonLabel,
   IonInput, IonButton, IonButtons, IonBackButton, IonIcon, IonCard,
@@ -17,7 +14,7 @@ import {
   IonInfiniteScrollContent, IonGrid, IonRow, IonCol, IonBadge, IonProgressBar, IonModal
 } from '@ionic/angular/standalone';
 
-// Íconos
+
 import { addIcons } from 'ionicons';
 import { 
   personOutline, idCardOutline, mailOutline, callOutline, 
@@ -47,8 +44,7 @@ export class Tab5Page implements OnInit {
   usuarioOriginal: any = null;
   modoEdicion: boolean = false;
   totalGlobal: number = 0; 
-
-  // --- VARIABLES DE IMPACTO AMBIENTAL ---
+  
   aportacionTotal: number = 0;
   impactoCO2: number = 0;
   arbolesSalvados: number = 0;
@@ -62,6 +58,7 @@ export class Tab5Page implements OnInit {
 
   reciclajesPendientes: any[] = [];
 
+    
   materiales: { [key: number]: string } = {
     1: 'Plástico',
     2: 'Vidrio',
@@ -70,9 +67,8 @@ export class Tab5Page implements OnInit {
   };
   metaPlantel: number = 100; 
   metaPersonal: number = 5;
+  fotoGrande: string = '';
   isModalOpen: boolean = false;
-  fotoSeleccionada: string = '';
-  // LÓGICA DE SEGMENT (Corregida para que el HTML no de error)
   private _selectedSegment: string = 'first';
   get selectedSegment(): string { return this._selectedSegment; }
   set selectedSegment(value: string) {
@@ -107,18 +103,15 @@ export class Tab5Page implements OnInit {
 
 ngOnInit() {
   this.obtenerUsuario();
-  this.obtenerReciclajes(); // Este ya llama a obtenerPendientes si es necesario
+  this.obtenerReciclajes(); 
   this.obtenerEstadisticas();
   this.obtenerEstadisticasGlobales();
 }
-
-  // --- LÓGICA DE ROLES (INTACTA) ---
   esAdmin(): boolean { return this.usuario?.rol === 'admin'; }
   esComite(): boolean { return this.usuario?.rol === 'comite' || this.usuario?.rol === 'evaluacion'; }
   esAlumno(): boolean { return this.usuario?.rol === 'alumno'; }
   get userRole(): string { return this.usuario?.rol || 'alumno'; }
 
-  // --- IMPACTO AMBIENTAL (NUEVO MÉTODO) ---
   calcularImpactoAmbiental(totalKg: number) {
     this.aportacionTotal = totalKg;
     this.impactoCO2 = totalKg * 1.2;
@@ -126,13 +119,16 @@ ngOnInit() {
     this.aguaAhorrada = totalKg * 5;
   }
 
-  // --- GESTIÓN DE DATOS ---
- obtenerPendientes() {
-  // NO filtres por ID, trae TODOS los pendientes
+obtenerPendientes() {
   this.http.get<any[]>(`${this.apiAdmin}/pendientes`).subscribe({
     next: (data) => {
-      this.reciclajesPendientes = data || [];
-      console.log('📋 Pendientes para validar:', this.reciclajesPendientes.length);
+      this.reciclajesPendientes = (data || []).map(p => ({
+        ...p,
+        material: p.residuo_id && this.materiales[p.residuo_id] 
+          ? this.materiales[p.residuo_id] 
+          : (p.otro_material || 'Otro material')
+      }));
+      console.log('📋 Pendientes para validar:', this.reciclajesPendientes);
     },
     error: (err) => console.error('Error al cargar pendientes:', err)
   });
@@ -143,7 +139,7 @@ ngOnInit() {
       next: (res: any) => {
         if (res.success) {
           this.reciclajesPendientes = this.reciclajesPendientes.filter(p => p.id !== id);
-          this.obtenerEstadisticas(); // Recalcular impacto tras validar
+          this.obtenerEstadisticas();
         }
       },
       error: (err) => console.error('Error al validar', err)
@@ -169,6 +165,15 @@ obtenerEstadisticas() {
     },
     error: (err) => console.error('Error al cargar estadísticas:', err)
   });
+}
+abrirModal(foto: string) {
+  this.fotoGrande = foto;
+  this.isModalOpen = true;
+}
+
+cerrarModal() {
+  this.isModalOpen = false;
+  this.fotoGrande = '';
 }
   obtenerUsuario() {
     const usuarioLog = JSON.parse(localStorage.getItem('usuario') || '{}');
