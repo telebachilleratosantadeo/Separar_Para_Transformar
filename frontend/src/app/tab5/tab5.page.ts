@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
+// --- IMPORTACIONES PARA PDF ---
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+// ------------------------------
+
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
@@ -11,7 +16,7 @@ import {
   IonInput, IonButton, IonButtons, IonBackButton, IonIcon, IonCard,
   IonCardHeader, IonCardTitle, IonCardContent, IonList, IonSegment,
   IonSegmentButton, IonSegmentContent, IonSegmentView, IonInfiniteScroll,
-  IonInfiniteScrollContent, IonGrid, IonRow, IonCol, IonBadge, IonProgressBar, IonModal
+  IonInfiniteScrollContent, IonGrid, IonRow, IonCol, IonBadge, IonProgressBar, IonModal, IonFab, IonFabButton, IonCardSubtitle
 } from '@ionic/angular/standalone';
 
 
@@ -35,7 +40,7 @@ import {
     IonContent, IonAvatar, IonItem, IonLabel, IonInput, IonButton, IonButtons,
     IonBackButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonList, IonSegment, IonSegmentButton, IonSegmentContent, IonSegmentView,
-    IonInfiniteScroll, IonInfiniteScrollContent, IonGrid, IonRow, IonCol, IonBadge, IonProgressBar, IonModal
+    IonInfiniteScroll, IonInfiniteScrollContent, IonGrid, IonRow, IonCol, IonBadge, IonProgressBar, IonModal,IonFab, IonFabButton, IonCardSubtitle
   ]
 })
 export class Tab5Page implements OnInit {
@@ -107,6 +112,7 @@ ngOnInit() {
   this.obtenerEstadisticas();
   this.obtenerEstadisticasGlobales();
 }
+
   esAdmin(): boolean { return this.usuario?.rol === 'admin'; }
   esComite(): boolean { return this.usuario?.rol === 'comite' || this.usuario?.rol === 'evaluacion'; }
   esAlumno(): boolean { return this.usuario?.rol === 'alumno'; }
@@ -319,4 +325,44 @@ obtenerReciclajes() {
 
   cerrarSesion() { localStorage.removeItem('usuario'); window.location.href = '/login'; }
   obtenerTotalGeneral(): number { return this.estadisticas.reduce((acc, est) => acc + (Number(est.total) || 0), 0); }
+
+  // ✨ AQUÍ EMPIEZA LA FUNCIÓN DEL PDF (PUNTO 7)
+  // ============================================================
+  async generarPDF() {
+    const doc = new jsPDF();
+
+    // 1. Título y Estilo del encabezado
+    doc.setFontSize(18);
+    doc.setTextColor(45, 211, 111); // Color verde
+    doc.text('REPORTE DE IMPACTO AMBIENTAL', 14, 22);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text('Telebachillerato Comunitario "San Tadeo"', 14, 30);
+    doc.text(`Fecha de reporte: ${new Date().toLocaleDateString()}`, 14, 38);
+    doc.text(`Alumno: ${this.usuario?.nombre} ${this.usuario?.apellidos}`, 14, 46);
+
+    // 2. Preparar los datos de la tabla (usamos tus estadísticas reales)
+    // Esto toma lo que ya tienes en la pantalla y lo pone en el PDF
+    const cuerpoTabla = this.estadisticas.map(est => [
+      est.material,        // Columna Material
+      est.total + ' kg',   // Columna Cantidad
+      '2026'                // Puedes poner el año o fecha
+    ]);
+
+    // 3. Crear la tabla en el PDF
+    autoTable(doc, {
+      startY: 55,
+      head: [['Material Reciclado', 'Cantidad Total', 'Periodo']],
+      body: cuerpoTabla,
+      theme: 'grid',
+      headStyles: { fillColor: [45, 211, 111] }, // Encabezado verde
+    });
+
+    // 4. Descargar el archivo
+    doc.save(`Reporte_Reciclaje_${this.usuario?.nombre}.pdf`);
+  }
+  // ============================================================
+  // ✨ AQUÍ TERMINA LA FUNCIÓN DEL PDF
+  // ============================================================
 }
