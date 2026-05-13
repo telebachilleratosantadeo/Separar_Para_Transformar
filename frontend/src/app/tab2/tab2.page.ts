@@ -1,17 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http'; // Importante para la API
 import { 
-  IonHeader, IonToolbar, IonTitle, IonContent, IonCard, 
-  IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonIcon, IonGrid, IonRow, IonCol, IonSpinner 
+  IonHeader, IonToolbar, IonTitle, IonContent, 
+  IonGrid, IonRow, IonCol, IonIcon, 
+  IonCardSubtitle, IonCardContent, IonLabel, IonList, IonItem,
+  IonCard, IonCardHeader 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { leaf, sync, book, openOutline, bookOutline, beaker, 
-  documentText, 
-  wine, 
-  closeCircle, 
-  warning } from 'ionicons/icons';
+import { 
+  leaf, beaker, documentText, wine, 
+  warning, bookOutline, openOutline, closeCircle 
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-tab2',
@@ -19,21 +19,25 @@ import { leaf, sync, book, openOutline, bookOutline, beaker,
   styleUrls: ['tab2.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, HttpClientModule, 
-    IonHeader, IonToolbar, IonTitle, IonContent, IonCard, 
-    IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonIcon, IonGrid, IonRow, IonCol, IonSpinner
+    CommonModule, HttpClientModule, // Asegúrate de que estén aquí
+    IonHeader, IonToolbar, IonTitle, IonContent,
+    IonGrid, IonRow, IonCol, IonIcon, 
+    IonCardSubtitle, IonCardContent, IonLabel, IonList, IonItem,
+    IonCard, IonCardHeader
   ]
 })
 export class Tab2Page implements OnInit {
+  // Arreglo donde se guardarán los enlaces de la BD
   enlaces: any[] = [];
-  apiUrl = 'http://localhost:3000/enlaces';
 
   constructor(private http: HttpClient) {
-    addIcons({ leaf, sync, book, openOutline, bookOutline, beaker, 'document-text': documentText, // Para que reconozca el guion medio
-      wine, 
-      'close-circle': closeCircle, 
-      warning });
+    addIcons({ 
+      leaf, beaker, wine, warning, 
+      'document-text': documentText, 
+      'close-circle': closeCircle,
+      'book-outline': bookOutline, 
+      'open-outline': openOutline 
+    });
   }
 
   ngOnInit() {
@@ -41,9 +45,15 @@ export class Tab2Page implements OnInit {
   }
 
   obtenerEnlaces() {
-    this.http.get<any[]>(this.apiUrl).subscribe({
-      next: (data) => { this.enlaces = data; },
-      error: (err) => { console.error('Error cargando enlaces', err); }
+    // Cambia esta URL por la de tu endpoint real (ej: http://localhost:3000/enlaces)
+    this.http.get<any[]>('http://localhost:3000/enlaces').subscribe({
+      next: (data) => {
+        this.enlaces = data;
+        console.log('Enlaces cargados:', this.enlaces);
+      },
+      error: (err) => {
+        console.error('Error al obtener enlaces de la BD:', err);
+      }
     });
   }
 }

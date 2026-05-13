@@ -58,11 +58,13 @@ app.post('/reciclaje', async (req, res) => {
 app.get('/estadisticas/:usuario_id', async (req, res) => {
     const { usuario_id } = req.params;
     const query = `
-        SELECT m.nombre as material, SUM(r.cantidad) as total 
+        SELECT 
+            COALESCE(m.nombre, 'Otro') as material, 
+            SUM(r.cantidad) as total 
         FROM reciclaje r 
-        JOIN residuos m ON r.residuo_id = m.id 
+        LEFT JOIN residuos m ON r.residuo_id = m.id 
         WHERE r.usuario_id = ? AND r.estado = 'aprobado' 
-        GROUP BY m.nombre`;
+        GROUP BY COALESCE(m.nombre, 'Otro')`;
 
     try {
         const [rows] = await db.query(query, [usuario_id]);
@@ -72,14 +74,15 @@ app.get('/estadisticas/:usuario_id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
 app.get('/admin/estadisticas-globales', async (req, res) => {
     const query = `
-        SELECT m.nombre as material, SUM(r.cantidad) as total 
+        SELECT 
+            COALESCE(m.nombre, 'Otro') as material, 
+            SUM(r.cantidad) as total 
         FROM reciclaje r 
-        JOIN residuos m ON r.residuo_id = m.id 
+        LEFT JOIN residuos m ON r.residuo_id = m.id 
         WHERE r.estado = 'aprobado' 
-        GROUP BY m.nombre`;
+        GROUP BY COALESCE(m.nombre, 'Otro')`;
     try {
         const [rows] = await db.query(query);
         res.json(rows);
@@ -238,7 +241,94 @@ app.put('/admin/asignar-recolector/:reciclaje_id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+app.get('/admin/exportar-pdf', async (req, res) => {
+    try {
+        const doc = new PDFDocument({ margin: 50 });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=Reporte_Detallado_Impacto.pdf');
 
+        doc.pipe(res);
+
+        // --- ENCABEZADO ---
+        doc.fontSize(22).fillColor('#2ecc71').text('REPORTE DE IMPACTO AMBIENTAL', { align: 'left' });
+        doc.moveDown(0.2);
+        doc.fontSize(14).fillColor('#7f8c8d').text('Telebachillerato Comunitario "San Tadeo"', { align: 'left' });
+        
+        const fechaReporte = new Date().toLocaleDateString();
+        doc.moveDown(0.5);
+        doc.fontSize(10).fillColor('#333').text(`Fecha de emisión: ${fechaReporte}`);
+        doc.moveDown(2);
+
+        // --- CONSULTA DETALLADA (Con Nombre y Fecha) ---
+        const query = `
+            SELECT 
+                u.nombre AS alumno, 
+                r.nombre AS material, 
+                rec.cantidad, 
+                rec.fecha
+            FROM reciclaje rec
+            JOIN usuarios u ON rec.usuario_id = u.id
+            JOIN residuos r ON rec.residuo_id = r.id
+            WHERE rec.estado = 'aprobado'
+            ORDER BY rec.fecha DESC
+        `;
+
+        const [rows] = await db.query(query);
+
+        // --- CONFIGURACIÓN DE LA TABLA ---
+        const tableTop = 180;
+        const colAlumno = 50;
+        const colMaterial = 200;
+        const colCantidad = 350;
+        const colFecha = 450;
+
+        // Encabezado de la tabla (Verde)
+        doc.rect(50, tableTop, 510, 25).fill('#2ecc71');
+        doc.fontSize(10).fillColor('#FFFFFF');
+        doc.text('Alumno', colAlumno + 5, tableTop + 8);
+        doc.text('Material', colMaterial + 5, tableTop + 8);
+        doc.text('Cantidad', colCantidad + 5, tableTop + 8);
+        doc.text('Fecha', colFecha + 5, tableTop + 8);
+
+        // Filas de la tabla
+        let y = tableTop + 25;
+        doc.fillColor('#333');
+
+        if (rows.length === 0) {
+            doc.rect(50, y, 510, 20).stroke('#ecf0f1');
+            doc.text('No hay registros de reciclaje aprobados.', colAlumno + 5, y + 6);
+        } else {
+            rows.forEach((row) => {
+                // Dibujar celda
+                doc.rect(50, y, 510, 20).stroke('#ecf0f1');
+                
+                const fechaEntrega = new Date(row.fecha).toLocaleDateString();
+                
+                doc.fontSize(9).fillColor('#333');
+                doc.text(row.alumno, colAlumno + 5, y + 6, { width: 140, ellipsis: true });
+                doc.text(row.material, colMaterial + 5, y + 6);
+                doc.text(`${row.cantidad} kg`, colCantidad + 5, y + 6);
+                doc.text(fechaEntrega, colFecha + 5, y + 6);
+                
+                y += 20;
+
+                // Si se acaba el espacio en la página, crear una nueva
+                if (y > 700) {
+                    doc.addPage();
+                    y = 50; // Reiniciar Y en la nueva página
+                }
+            });
+        }
+
+        doc.end();
+
+    } catch (err) {
+        console.error("Error al generar el PDF:", err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Error al generar el reporte" });
+        }
+    }
+}); 
 app.listen(PORT, () => {
     console.log(`✅ Servidor MySQL corriendo en http://localhost:${PORT}`);
 });

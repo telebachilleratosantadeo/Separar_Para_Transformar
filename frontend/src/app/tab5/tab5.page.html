@@ -255,9 +255,10 @@
     </ion-content>
   }
 
-  <!-- PESTAÑA 3: ESTADÍSTICAS -->
+  <!-- PESTAÑA 3: ESTADÍSTICAS (UNIFICADA Y CORRECTA) -->
   @if (selectedSegment === 'third') {
     <ion-content [fullscreen]="true" class="ion-padding">
+      <!-- FAB flotante para PDF (del segundo archivo) -->
       <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 15px; margin-right: 15px;">
         <div style="background: #2dd36f; color: white; padding: 4px 8px; border-radius: 5px; font-size: 10px; margin-bottom: 5px; text-align: center; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
           GENERAR PDF
@@ -271,6 +272,11 @@
         <ion-card style="border: 2px solid #3880ff; border-radius: 15px; background: #f4f5f8; margin-bottom: 20px;">
           <ion-card-header>
             <ion-card-title style="color: #3880ff; font-weight: bold;">📊 Seguimiento del Plantel</ion-card-title>
+            <!-- BOTÓN PDF DENTRO DEL HEADER (del primer archivo) -->
+            <ion-button color="danger" size="small" (click)="exportarPDF()">
+              <ion-icon slot="start" name="document-outline"></ion-icon>
+              PDF
+            </ion-button>
           </ion-card-header>
           <ion-card-content>
             <ion-item lines="none" style="--background: transparent; margin-bottom: 15px;">
@@ -297,6 +303,7 @@
         </ion-card>
       }
 
+      <!-- El resto del contenido de estadísticas (del segundo archivo) -->
       <ion-card class="neon-card" style="background: #1e1e1e; border: 1px solid #2dd36f; border-radius: 15px; margin-bottom: 20px;">
         <ion-card-content>
           <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
@@ -347,6 +354,7 @@
         </ion-card>
       }
 
+      <!-- Modal para generar PDF -->
       <ion-modal trigger="open-modal-reporte" [initialBreakpoint]="0.5" [breakpoints]="[0, 0.5, 0.8]">
         <ng-template>
           <ion-content class="ion-padding">
@@ -366,7 +374,7 @@
   }
 </ion-segment-view>
 
-<!-- Modal evidencia -->
+<!-- Modal evidencia (para ver fotos grandes) -->
 <ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()">
   <ng-template>
     <div class="modal-container" style="padding: 20px; text-align: center;">

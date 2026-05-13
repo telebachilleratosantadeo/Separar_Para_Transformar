@@ -5,6 +5,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 // --- IMPORTACIONES PARA PDF ---
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import autoTable from 'jspdf-autotable';
 // ------------------------------
 
@@ -105,7 +106,9 @@ export class Tab5Page implements OnInit {
   checkmarkOutline
     });
   }
-
+exportarPDF() {
+ window.open('http://localhost:3000/admin/exportar-pdf', '_blank'); 
+}
 ngOnInit() {
   this.obtenerUsuario();
   this.obtenerReciclajes(); 
@@ -126,32 +129,39 @@ ngOnInit() {
   }
 
 obtenerPendientes() {
-  this.http.get<any[]>(`${this.apiAdmin}/pendientes`).subscribe({
+  this.http.get<any[]>(`http://localhost:3000/admin/pendientes`).subscribe({
     next: (data) => {
-      this.reciclajesPendientes = (data || []).map(p => ({
-        ...p,
-        material: p.residuo_id && this.materiales[p.residuo_id] 
-          ? this.materiales[p.residuo_id] 
-          : (p.otro_material || 'Otro material')
-      }));
-      console.log('📋 Pendientes para validar:', this.reciclajesPendientes);
+      // El servidor ya envía 'material' en el JSON gracias al JOIN
+      this.reciclajesPendientes = data; 
+      console.log('📋 Pendientes recibidos:', this.reciclajesPendientes);
     },
     error: (err) => console.error('Error al cargar pendientes:', err)
   });
 }
 
-  validarReciclaje(id: number, estado: string) {
-    this.http.put(`http://localhost:3000/admin/validar/${id}`, { estado }).subscribe({
-      next: (res: any) => {
-        if (res.success) {
-          this.reciclajesPendientes = this.reciclajesPendientes.filter(p => p.id !== id);
-          this.obtenerEstadisticas();
-        }
-      },
-      error: (err) => console.error('Error al validar', err)
-    });
-  }
-
+validarReciclaje(id: number, estado: string) {
+  this.http.put(`http://localhost:3000/admin/validar/${id}`, { estado }).subscribe({
+    next: (res: any) => {
+      if (res.success) {
+        this.reciclajesPendientes = this.reciclajesPendientes.filter(p => p.id !== id);
+        
+        // Actualizar TODOS los datos
+        this.obtenerEstadisticas();        // Para gráfica personal
+        this.obtenerEstadisticasGlobales(); // Para gráfica global ← CLAVE
+        this.obtenerReciclajes();           // Para la lista de reciclajes
+        
+        // Forzar refresco de gráficas si es necesario
+        setTimeout(() => {
+          this.generarGrafica();
+          this.generarGraficaGlobal();
+        }, 500);
+        
+        console.log('✅ Registro validado, todo actualizado');
+      }
+    },
+    error: (err) => console.error('Error al validar', err)
+  });
+}
 obtenerEstadisticas() {
   const usuarioLog = JSON.parse(localStorage.getItem('usuario') || '{}');
   if (!usuarioLog.id) return;
@@ -229,19 +239,55 @@ obtenerReciclajes() {
     }
   });
 }
-  obtenerEstadisticasGlobales() {
-    this.http.get<any[]>('http://localhost:3000/admin/estadisticas-globales').subscribe({
-      next: (data) => {
-        this.estadisticasGlobales = data || [];
-        this.actualizarTotalGlobal();
-        if (this._selectedSegment === 'third') {
-          setTimeout(() => this.generarGraficaGlobal(), 400);
+obtenerEstadisticasGlobales() {
+  this.http.get<any[]>('http://localhost:3000/admin/estadisticas-globales').subscribe({
+    next: (data) => {
+      console.log('📊 Datos originales:', data);
+      
+      // Agrupar "Otro" materiales
+      let totalOtros = 0;
+      const materialesNormales = ['Plástico', 'Vidrio', 'Papel', 'Orgánico'];
+      const estadisticasAgrupadas: any[] = [];
+      
+      // Primero, procesar los datos del backend
+      data.forEach(item => {
+        if (materialesNormales.includes(item.material)) {
+          // Material normal - mantener igual
+          estadisticasAgrupadas.push({ ...item });
+        } else {
+          // Material "otro" - sumar al total
+          totalOtros += item.total;
         }
-      },
-      error: (err) => console.error('❌ Error en globales:', err)
-    });
-  }
-
+      });
+      
+      // Agregar la categoría "Otro" si tiene algún kg
+      if (totalOtros > 0) {
+        estadisticasAgrupadas.push({
+          material: 'Otro',
+          total: totalOtros
+        });
+      }
+      
+      // Asegurar que todos los materiales base aparezcan (incluso con 0)
+      materialesNormales.forEach(material => {
+        if (!estadisticasAgrupadas.some(e => e.material === material)) {
+          estadisticasAgrupadas.push({
+            material: material,
+            total: 0
+          });
+        }
+      });
+      
+      this.estadisticasGlobales = estadisticasAgrupadas;
+      this.actualizarTotalGlobal();
+      
+      if (this._selectedSegment === 'third') {
+        setTimeout(() => this.generarGraficaGlobal(), 400);
+      }
+    },
+    error: (err) => console.error('❌ Error en globales:', err)
+  });
+}
   actualizarTotalGlobal() {
     this.totalGlobal = this.estadisticasGlobales.reduce((acc, item) => acc + (Number(item.total) || 0), 0);
   }
@@ -285,7 +331,7 @@ obtenerReciclajes() {
   obtenerColor(material: string): string {
     const colores: { [key: string]: string } = {
       'Plástico': '#ffd534', 'Vidrio': '#2dd36f',
-      'Papel': '#3880ff', 'Orgánico': '#7e522a'
+      'Papel': '#3880ff', 'Orgánico': '#7e522a', "Otro": '#92949c'
     };
     const clave = Object.keys(colores).find(c => material.includes(c));
     return clave ? colores[clave] : '#92949c';
