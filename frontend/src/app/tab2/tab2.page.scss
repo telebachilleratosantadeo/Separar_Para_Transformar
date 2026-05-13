@@ -1,97 +1,131 @@
-/* Fondo general */
+/* Fondo general con degradado */
 ion-content {
   --background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
 }
 
-/* Toolbar */
-ion-toolbar {
-  --background: linear-gradient(90deg, #2e7d32, #66bb6a);
-  --color: #ffffff;
-  text-align: center;
-}
-
-/* Imagen */
-ion-card img {
-  border-radius: 15px;
-  height: 200px;
-  object-fit: cover;
-  width: 100%;
-}
-
-/* Cards generales */
-ion-card {
-  border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  margin-bottom: 20px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-ion-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
-}
-
-/* Títulos */
-ion-card-title {
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: #2e7d32;
-  text-align: center;
-}
-
-/* Inputs */
-ion-item {
-  --background: #ffffff;
-  border-radius: 12px;
-  margin-bottom: 10px;
-}
-
-ion-input, ion-select {
-  --padding-start: 10px;
-}
-
-/* Botones */
-ion-button {
-  margin-top: 10px;
-  border-radius: 12px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-}
-
-/* Resultado */
-ion-text p {
-  background: #f1f8e9;
-  padding: 10px;
-  border-radius: 10px;
-  margin-top: 10px;
-  font-weight: 500;
-}
-
-/* Toolbar personalizado */
+/* Header y Logo */
 .custom-toolbar {
   --background: linear-gradient(90deg, #2e7d32, #66bb6a);
   --color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 10px;
-  padding-bottom: 15px;
+  padding: 10px 0;
+  
+  ion-title {
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    text-align: center;
+  }
 }
 
-/* Contenedor de imagen */
 .header-image-container {
-  width: 100%;
   display: flex;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
+  img {
+    width: 80px; 
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
 }
 
-/* Imagen del header */
-.header-image-container img {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 4px solid white;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+/* Textos informativos */
+.welcome-text {
+  text-align: center;
+  margin: 15px 10px 25px 10px;
+  h2 { font-weight: 800; color: #1b5e20; margin-bottom: 5px; }
+  .underline { width: 40px; height: 3px; background: #66bb6a; margin: 0 auto 10px; }
+  p { color: #4e7e4e; font-size: 0.95rem; }
+}
+
+.section-title {
+  padding-left: 15px;
+  font-weight: bold;
+  color: #2e7d32;
+  font-size: 1.1rem;
+  margin-top: 20px;
+}
+
+/* Tarjetas de Guía Estilo Premium */
+.guide-card {
+  border-radius: 20px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  margin: 8px;
+  background: #ffffff;
+  min-height: 210px; 
+  transition: transform 0.2s;
+
+  &:active { transform: scale(0.96); }
+
+  .icon-container {
+    text-align: center;
+    padding-top: 15px;
+    font-size: 2.5rem;
+  }
+
+  ion-card-header {
+    padding: 10px 15px 5px 15px;
+    ion-card-subtitle { 
+      font-weight: 800; 
+      color: #333; 
+      font-size: 0.85rem; 
+    }
+  }
+
+  ion-card-content { 
+    font-size: 0.75rem; 
+    line-height: 1.4; 
+    color: #666; 
+    text-align: left;
+    padding: 0 15px 15px 15px;
+  }
+}
+
+/* TUS COLORES PERSONALIZADOS APLICADOS */
+.card-organico { 
+  border-bottom: 6px solid #8b5e3c; 
+  .icon-container { color: #8b5e3c; } 
+}
+
+.card-plastico { 
+  border-bottom: 6px solid #ffd534; 
+  .icon-container { color: #ffd534; } 
+}
+
+.card-papel { 
+  border-bottom: 6px solid #3880ff; 
+  .icon-container { color: #3880ff; } 
+}
+
+.card-vidrio { 
+  border-bottom: 6px solid #2dd36f; 
+  .icon-container { color: #2dd36f; } 
+}
+
+/* Colores de soporte para las otras dos */
+.card-no-reciclable { 
+  border-bottom: 6px solid #616161; 
+  .icon-container { color: #616161; } 
+}
+
+.card-peligroso { 
+  border-bottom: 6px solid #d32f2f; 
+  .icon-container { color: #d32f2f; } 
+}
+
+/* Lista de Recursos */
+.resources-card {
+  margin: 15px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  
+  .enlace-item {
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    .enlace-categoria { font-size: 0.65rem; font-weight: bold; color: #388e3c; }
+    .enlace-titulo { font-weight: 700; color: #2e7d32; font-size: 1rem; margin: 2px 0; }
+  }
 }

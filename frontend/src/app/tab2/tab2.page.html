@@ -1,33 +1,137 @@
-<ion-header>
+<ion-header class="ion-no-border">
   <ion-toolbar class="custom-toolbar">
     <div class="header-image-container">
       <img src="../assets/TBCST.jpeg" alt="Logo">
     </div>
-    <ion-title>Educación Ambiental </ion-title>
+    <ion-title>Educación Ambiental</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="ion-padding">
+  <div class="welcome-text">
+    <h2>Separar para Transformar</h2>
+    <div class="underline"></div>
+    <p>Aprende a clasificar tus residuos correctamente para darle un respiro al planeta.</p>
+  </div>
 
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Recursos para aprender</ion-card-title>
-    </ion-card-header>
+  <h3 class="section-title">Guía de Separación</h3>
 
-    <ion-list>
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <!-- Orgánico -->
+      <ion-col size="6">
+        <ion-card class="guide-card card-organico">
+          <div class="icon-container"><ion-icon name="leaf"></ion-icon></div>
+          <ion-card-header>
+            <ion-card-subtitle>Orgánico</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            -Restos de comida.<br>
+            -Cáscaras de fruta.<br>
+            -Hojas y plantas.<br>
+            -Café y té.
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
 
-      <ion-item
-        *ngFor="let enlace of enlaces"
-        button
-        [href]="enlace.url"
-        target="_blank">
+      <!-- Plástico (Amarillo) -->
+      <ion-col size="6">
+        <ion-card class="guide-card card-plastico">
+          <div class="icon-container"><ion-icon name="beaker"></ion-icon></div>
+          <ion-card-header>
+            <ion-card-subtitle>Plástico</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            -Botellas PET.<br>
+            -Envases vacíos.<br>
+            -Tapas de plástico.<br>
+            -Bolsas limpias.
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
 
-        {{ enlace.titulo }}
+    <ion-row>
+      <!-- Papel (Azul) -->
+      <ion-col size="6">
+        <ion-card class="guide-card card-papel">
+          <div class="icon-container"><ion-icon name="document-text"></ion-icon></div>
+          <ion-card-header>
+            <ion-card-subtitle>Papel</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            -Hojas y folios.<br>
+            -Cartón y cajas.<br>
+            -Periódicos.<br>
+            -Revistas.
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
 
+      <!-- Vidrio (Verde) -->
+      <ion-col size="6">
+        <ion-card class="guide-card card-vidrio">
+          <div class="icon-container"><ion-icon name="wine"></ion-icon></div>
+          <ion-card-header>
+            <ion-card-subtitle>Vidrio</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            -Botellas de vidrio.<br>
+            -Frascos limpios.<br>
+            -Envases perfume.<br>
+            -Tarros.
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+
+    <ion-row>
+      <!-- No Reciclable (Gris por defecto) -->
+      <ion-col size="6">
+        <ion-card class="guide-card card-no-reciclable">
+          <div class="icon-container"><ion-icon name="close-circle"></ion-icon></div>
+          <ion-card-header>
+            <ion-card-subtitle>No Reciclable</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            -Papel sanitario.<br>
+            -Colillas.<br>
+            -Pañales.<br>
+            -Servilletas.
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <!-- Peligrosos (Rojo por defecto) -->
+      <ion-col size="6">
+        <ion-card class="guide-card card-peligroso">
+          <div class="icon-container"><ion-icon name="warning"></ion-icon></div>
+          <ion-card-header>
+            <ion-card-subtitle>Peligrosos</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            -Pilas y baterías.<br>
+            -Focos y luces.<br>
+            -Medicamentos.<br>
+            -Químicos.
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <h3 class="section-title">Recursos Externos</h3>
+  <ion-card class="resources-card">
+    <ion-list lines="full">
+      <ion-item *ngFor="let enlace of enlaces" button [href]="enlace.url" target="_blank" class="enlace-item">
+        <ion-icon name="book-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <p class="enlace-categoria">{{ enlace.categoria || 'Recurso Educativo' }}</p>
+          <h2 class="enlace-titulo">{{ enlace.titulo }}</h2>
+          <p>Haz clic para abrir el enlace</p>
+        </ion-label>
+        <ion-icon name="open-outline" slot="end" size="small"></ion-icon>
       </ion-item>
-
     </ion-list>
-
   </ion-card>
-
 </ion-content>

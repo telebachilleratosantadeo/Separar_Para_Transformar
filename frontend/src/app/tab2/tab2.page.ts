@@ -1,19 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-
-// Ionic standalone
-import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonList,
-  IonItem
+import { 
+  IonHeader, IonToolbar, IonTitle, IonContent, IonCard, 
+  IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+  IonList, IonItem, IonLabel, IonIcon, IonGrid, IonRow, IonCol, IonSpinner 
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { leaf, sync, book, openOutline, bookOutline, beaker, 
+  documentText, 
+  wine, 
+  closeCircle, 
+  warning } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tab2',
@@ -21,25 +19,22 @@ import {
   styleUrls: ['tab2.page.scss'],
   standalone: true,
   imports: [
-    CommonModule,
-    HttpClientModule,   // 👈 IMPORTANTE
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonList,
-    IonItem
+    CommonModule, HttpClientModule, 
+    IonHeader, IonToolbar, IonTitle, IonContent, IonCard, 
+    IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+    IonList, IonItem, IonLabel, IonIcon, IonGrid, IonRow, IonCol, IonSpinner
   ]
 })
 export class Tab2Page implements OnInit {
-
   enlaces: any[] = [];
   apiUrl = 'http://localhost:3000/enlaces';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    addIcons({ leaf, sync, book, openOutline, bookOutline, beaker, 'document-text': documentText, // Para que reconozca el guion medio
+      wine, 
+      'close-circle': closeCircle, 
+      warning });
+  }
 
   ngOnInit() {
     this.obtenerEnlaces();
@@ -47,12 +42,8 @@ export class Tab2Page implements OnInit {
 
   obtenerEnlaces() {
     this.http.get<any[]>(this.apiUrl).subscribe({
-      next: (data) => {
-        this.enlaces = data;
-      },
-      error: (err) => {
-        console.error('Error cargando enlaces', err);
-      }
+      next: (data) => { this.enlaces = data; },
+      error: (err) => { console.error('Error cargando enlaces', err); }
     });
   }
 }
