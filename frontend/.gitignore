@@ -19,18 +19,18 @@ log.txt
 
 # Ionic
 /.ionic
-/www
+www
 /platforms
 /plugins
 
 # Compiled output
-/dist
+dist
 /tmp
 /out-tsc
 /bazel-out
 
 # Node
-/node_modules
+node_modules
 npm-debug.log
 yarn-error.log
 
@@ -54,7 +54,7 @@ yarn-error.log
 
 
 # Miscellaneous
-/.angular
+.angular
 /.angular/cache
 .sass-cache/
 /.nx
@@ -68,3 +68,10 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+node_modules/
+**/node_modules/
+api/node_modules/
+frontend/node_modules/
+frontend/.angular/
+api/.angular/

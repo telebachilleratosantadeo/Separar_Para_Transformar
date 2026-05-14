@@ -28,7 +28,7 @@ import {
   cameraOutline, documentTextOutline, statsChartOutline,
   checkmarkCircleOutline, closeCircleOutline,
   earthSharp, happyOutline , searchOutline,
-  checkmarkOutline
+  checkmarkOutline,cloudDownloadOutline, documentOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -103,12 +103,12 @@ export class Tab5Page implements OnInit {
       cameraOutline, documentTextOutline, statsChartOutline,
       checkmarkCircleOutline, closeCircleOutline,
       earthSharp, happyOutline , searchOutline,
-  checkmarkOutline
+      checkmarkOutline,cloudDownloadOutline, documentOutline, 'cloud-download-outline': cloudDownloadOutline,
+    'document-text-outline': documentTextOutline,
+    'document-outline': documentOutline
     });
   }
-exportarPDF() {
- window.open('http://localhost:3000/admin/exportar-pdf', '_blank'); 
-}
+
 ngOnInit() {
   this.obtenerUsuario();
   this.obtenerReciclajes(); 
@@ -374,8 +374,26 @@ obtenerEstadisticasGlobales() {
 
   // ✨ AQUÍ EMPIEZA LA FUNCIÓN DEL PDF (PUNTO 7)
   // ============================================================
-  async generarPDF() {
-    const doc = new jsPDF();
+ 
+exportarPDF() {
+  const usuarioLog = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+  // 🛡️ Validación de seguridad: Solo admin o comite
+  if (usuarioLog.rol === 'admin' || usuarioLog.rol === 'comite') {
+    const url = 'http://localhost:3000/admin/exportar-pdf';
+    window.open(url, '_blank');
+  } else {
+    alert('No tienes permisos para generar este reporte global.');
+  }
+}
+async generarPDF() {
+  if (!this.estadisticas || this.estadisticas.length === 0) {
+    alert('No hay datos para exportar');
+    return;
+  }
+  
+  const doc = new jsPDF();
+  // ... tu lógica de diseño que ya tienes ...
 
     // 1. Título y Estilo del encabezado
     doc.setFontSize(18);

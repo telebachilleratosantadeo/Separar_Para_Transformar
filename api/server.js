@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./database'); 
-
+const PDFDocument = require('pdfkit');
 const app = express();
 
 app.use(cors());
@@ -241,6 +241,7 @@ app.put('/admin/asignar-recolector/:reciclaje_id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 app.get('/admin/exportar-pdf', async (req, res) => {
     try {
         const doc = new PDFDocument({ margin: 50 });
