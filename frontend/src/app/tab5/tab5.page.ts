@@ -2,13 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-
-// --- IMPORTACIONES PARA PDF ---
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import autoTable from 'jspdf-autotable';
-// ------------------------------
-
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
@@ -55,7 +51,7 @@ export class Tab5Page implements OnInit {
   impactoCO2: number = 0;
   arbolesSalvados: number = 0;
   aguaAhorrada: number = 0;
-  
+
   reciclajes: any[] = [];
   reciclajesMostrados: any[] = [];
   estadisticas: any[] = []; 
@@ -73,6 +69,7 @@ export class Tab5Page implements OnInit {
   };
   metaPlantel: number = 100; 
   metaPersonal: number = 5;
+  mesActualNombre: string = '';
   fotoGrande: string = '';
   isModalOpen: boolean = false;
   private _selectedSegment: string = 'first';
@@ -110,15 +107,30 @@ export class Tab5Page implements OnInit {
   }
 
 ngOnInit() {
+  this.establecerMesActual();
   this.obtenerUsuario();
   this.obtenerReciclajes(); 
   this.obtenerEstadisticas();
   this.obtenerEstadisticasGlobales();
 }
-
+establecerMesActual() {
+  const meses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ]; const fecha = new Date();
+  this.mesActualNombre = meses[fecha.getMonth()];
+  if (this.mesActualNombre === 'Mayo') {
+    this.metaPlantel = 150; 
+    this.metaPersonal = 8;
+  } else {
+    this.metaPlantel = 100; 
+    this.metaPersonal = 5;
+  }
+}
   esAdmin(): boolean { return this.usuario?.rol === 'admin'; }
   esComite(): boolean { return this.usuario?.rol === 'comite' || this.usuario?.rol === 'evaluacion'; }
   esAlumno(): boolean { return this.usuario?.rol === 'alumno'; }
+  esRecolector = () => this.usuario?.rol === 'recolector';
   get userRole(): string { return this.usuario?.rol || 'alumno'; }
 
   calcularImpactoAmbiental(totalKg: number) {
@@ -131,7 +143,6 @@ ngOnInit() {
 obtenerPendientes() {
   this.http.get<any[]>(`http://localhost:3000/admin/pendientes`).subscribe({
     next: (data) => {
-      // El servidor ya envía 'material' en el JSON gracias al JOIN
       this.reciclajesPendientes = data; 
       console.log('📋 Pendientes recibidos:', this.reciclajesPendientes);
     },
@@ -144,13 +155,9 @@ validarReciclaje(id: number, estado: string) {
     next: (res: any) => {
       if (res.success) {
         this.reciclajesPendientes = this.reciclajesPendientes.filter(p => p.id !== id);
-        
-        // Actualizar TODOS los datos
-        this.obtenerEstadisticas();        // Para gráfica personal
-        this.obtenerEstadisticasGlobales(); // Para gráfica global ← CLAVE
-        this.obtenerReciclajes();           // Para la lista de reciclajes
-        
-        // Forzar refresco de gráficas si es necesario
+        this.obtenerEstadisticas();        
+        this.obtenerEstadisticasGlobales(); 
+        this.obtenerReciclajes();           
         setTimeout(() => {
           this.generarGrafica();
           this.generarGraficaGlobal();
@@ -230,7 +237,7 @@ obtenerReciclajes() {
       this.reciclajesMostrados = this.reciclajes.slice(0, this.batchSize);
       console.log('✅ [DEBUG] reciclajesMostrados:', this.reciclajesMostrados.length);
       
-      if (this.esComite() || this.esAdmin()) {
+      if (this.esComite() || this.esAdmin() || this.esRecolector()) {
         this.obtenerPendientes();
       }
     },
@@ -243,32 +250,22 @@ obtenerEstadisticasGlobales() {
   this.http.get<any[]>('http://localhost:3000/admin/estadisticas-globales').subscribe({
     next: (data) => {
       console.log('📊 Datos originales:', data);
-      
-      // Agrupar "Otro" materiales
       let totalOtros = 0;
       const materialesNormales = ['Plástico', 'Vidrio', 'Papel', 'Orgánico'];
       const estadisticasAgrupadas: any[] = [];
-      
-      // Primero, procesar los datos del backend
       data.forEach(item => {
         if (materialesNormales.includes(item.material)) {
-          // Material normal - mantener igual
           estadisticasAgrupadas.push({ ...item });
         } else {
-          // Material "otro" - sumar al total
           totalOtros += item.total;
         }
       });
-      
-      // Agregar la categoría "Otro" si tiene algún kg
       if (totalOtros > 0) {
         estadisticasAgrupadas.push({
           material: 'Otro',
           total: totalOtros
         });
       }
-      
-      // Asegurar que todos los materiales base aparezcan (incluso con 0)
       materialesNormales.forEach(material => {
         if (!estadisticasAgrupadas.some(e => e.material === material)) {
           estadisticasAgrupadas.push({
@@ -292,41 +289,83 @@ obtenerEstadisticasGlobales() {
     this.totalGlobal = this.estadisticasGlobales.reduce((acc, item) => acc + (Number(item.total) || 0), 0);
   }
 
-  generarGrafica() {
-    const ctx = document.getElementById('canvasGrafica') as HTMLCanvasElement;
-    if (!ctx || this.estadisticas.length === 0) return;
-    if (this.chart) { this.chart.destroy(); }
+generarGrafica() {
+  const ctx = document.getElementById('canvasGrafica') as HTMLCanvasElement;
+  if (!ctx) return;
+  
+  if (this.chart) { this.chart.destroy(); }
+
+  // Si no hay datos este mes, se dibuja una gráfica gris vacía de estructura
+  if (this.estadisticas.length === 0) {
     this.chart = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: this.estadisticas.map(e => e.material),
+        labels: ['Sin registros este mes'],
         datasets: [{
-          data: this.estadisticas.map(e => e.total),
-          backgroundColor: this.estadisticas.map(e => this.obtenerColor(e.material)),
-          borderWidth: 2
+          data: [1],
+          backgroundColor: ['#e0e0e0'],
+          borderWidth: 1
         }]
       },
       options: { responsive: true, maintainAspectRatio: false }
     });
+    return;
   }
 
-  generarGraficaGlobal() {
-    const ctx = document.getElementById('canvasGraficaGlobal') as HTMLCanvasElement;
-    if (!ctx || this.estadisticasGlobales.length === 0) return;
-    if (this.chartGlobal) { this.chartGlobal.destroy(); }
+  // Si hay datos, genera tu estructura normal
+  this.chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: this.estadisticas.map(e => e.material),
+      datasets: [{
+        data: this.estadisticas.map(e => e.total),
+        backgroundColor: this.estadisticas.map(e => this.obtenerColor(e.material)),
+        borderWidth: 2
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+generarGraficaGlobal() {
+  const ctx = document.getElementById('canvasGraficaGlobal') as HTMLCanvasElement;
+  if (!ctx) return;
+  
+  if (this.chartGlobal) { this.chartGlobal.destroy(); }
+
+  // Si el plantel no lleva nada reciclado en el mes actual, muestra la gráfica vacía
+  const tieneDatos = this.estadisticasGlobales.some(e => Number(e.total) > 0);
+
+  if (!tieneDatos || this.estadisticasGlobales.length === 0) {
     this.chartGlobal = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: this.estadisticasGlobales.map(e => e.material),
+        labels: ['Sin reciclaje global este mes'],
         datasets: [{
-          data: this.estadisticasGlobales.map(e => e.total),
-          backgroundColor: this.estadisticasGlobales.map(e => this.obtenerColor(e.material)),
-          borderWidth: 2
+          data: [1],
+          backgroundColor: ['#e0e0e0'], // Color gris neutro
+          borderWidth: 1
         }]
       },
       options: { responsive: true, maintainAspectRatio: false }
     });
+    return;
   }
+
+  // Si ya hay registros aprobados en el plantel, genera la gráfica normal
+  this.chartGlobal = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: this.estadisticasGlobales.map(e => e.material),
+      datasets: [{
+        data: this.estadisticasGlobales.map(e => e.total),
+        backgroundColor: this.estadisticasGlobales.map(e => this.obtenerColor(e.material)),
+        borderWidth: 2
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
 
   obtenerColor(material: string): string {
     const colores: { [key: string]: string } = {
@@ -371,14 +410,9 @@ obtenerEstadisticasGlobales() {
 
   cerrarSesion() { localStorage.removeItem('usuario'); window.location.href = '/login'; }
   obtenerTotalGeneral(): number { return this.estadisticas.reduce((acc, est) => acc + (Number(est.total) || 0), 0); }
-
-  // ✨ AQUÍ EMPIEZA LA FUNCIÓN DEL PDF (PUNTO 7)
-  // ============================================================
  
 exportarPDF() {
   const usuarioLog = JSON.parse(localStorage.getItem('usuario') || '{}');
-
-  // 🛡️ Validación de seguridad: Solo admin o comite
   if (usuarioLog.rol === 'admin' || usuarioLog.rol === 'comite') {
     const url = 'http://localhost:3000/admin/exportar-pdf';
     window.open(url, '_blank');
@@ -393,28 +427,20 @@ async generarPDF() {
   }
   
   const doc = new jsPDF();
-  // ... tu lógica de diseño que ya tienes ...
-
-    // 1. Título y Estilo del encabezado
     doc.setFontSize(18);
-    doc.setTextColor(45, 211, 111); // Color verde
+    doc.setTextColor(45, 211, 111); 
     doc.text('REPORTE DE IMPACTO AMBIENTAL', 14, 22);
-    
     doc.setFontSize(11);
     doc.setTextColor(100);
     doc.text('Telebachillerato Comunitario "San Tadeo"', 14, 30);
     doc.text(`Fecha de reporte: ${new Date().toLocaleDateString()}`, 14, 38);
     doc.text(`Alumno: ${this.usuario?.nombre} ${this.usuario?.apellidos}`, 14, 46);
-
-    // 2. Preparar los datos de la tabla (usamos tus estadísticas reales)
-    // Esto toma lo que ya tienes en la pantalla y lo pone en el PDF
     const cuerpoTabla = this.estadisticas.map(est => [
-      est.material,        // Columna Material
-      est.total + ' kg',   // Columna Cantidad
-      '2026'                // Puedes poner el año o fecha
+      est.material,       
+      est.total + ' kg',  
+      '2026'               
     ]);
 
-    // 3. Crear la tabla en el PDF
     autoTable(doc, {
       startY: 55,
       head: [['Material Reciclado', 'Cantidad Total', 'Periodo']],
@@ -422,11 +448,6 @@ async generarPDF() {
       theme: 'grid',
       headStyles: { fillColor: [45, 211, 111] }, // Encabezado verde
     });
-
-    // 4. Descargar el archivo
     doc.save(`Reporte_Reciclaje_${this.usuario?.nombre}.pdf`);
   }
-  // ============================================================
-  // ✨ AQUÍ TERMINA LA FUNCIÓN DEL PDF
-  // ============================================================
 }

@@ -1,9 +1,10 @@
 <ion-segment [(ngModel)]="selectedSegment">
-  @if (esComite() || esAdmin()) {
-    <ion-segment-button value="validations">
-      <ion-label>Validaciones</ion-label>
-    </ion-segment-button>
-  }
+ 
+@if (esComite() || esAdmin() || esRecolector()) {
+  <ion-segment-button value="validations">
+    <ion-label>Validaciones</ion-label>
+  </ion-segment-button>
+}
   <ion-segment-button value="first">
     <ion-label>Perfil</ion-label>
   </ion-segment-button>
@@ -17,8 +18,8 @@
 
 <ion-segment-view>
   
-  <!-- Pestaña Validaciones -->
-  @if (selectedSegment === 'validations' && (esComite() || esAdmin())) {
+// validaciones 
+  @if (selectedSegment === 'validations' && (esComite() || esAdmin() || esRecolector())) {
     <ion-content [fullscreen]="true" class="ion-padding">
       <div class="validations-container">
         <ion-card style="background: linear-gradient(135deg, #ffc409, #ff8c00); margin: 20px auto; width: 90%;">
@@ -86,8 +87,7 @@
       </div>
     </ion-content>
   }
-
-  <!-- PESTAÑA 1: PERFIL -->
+//pestaña 1
   @if (selectedSegment === 'first') {
     <ion-content [fullscreen]="true" class="dark-bg">
       @if (usuario) {
@@ -206,7 +206,7 @@
     </ion-content>
   }
 
-  <!-- PESTAÑA 2: RECICLAJES -->
+ //pestaña 2
   @if (selectedSegment === 'second') {
     <ion-content [fullscreen]="true" class="ion-padding bg-light">
       <ion-card style="background: #2e7d32; color: white; margin-bottom: 15px;">
@@ -255,126 +255,121 @@
     </ion-content>
   }
 
-  <!-- PESTAÑA 3: ESTADÍSTICAS (UNIFICADA Y CORRECTA) -->
-  @if (selectedSegment === 'third') {
-    <ion-content [fullscreen]="true" class="ion-padding">
-      <!-- FAB flotante para PDF (del segundo archivo) -->
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 15px; margin-right: 15px;">
-        <div style="background: #2dd36f; color: white; padding: 4px 8px; border-radius: 5px; font-size: 10px; margin-bottom: 5px; text-align: center; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-          GENERAR PDF
-        </div>
-        <ion-fab-button color="success" id="open-modal-reporte">
-          <ion-icon name="document-text-outline"></ion-icon>
-        </ion-fab-button>
-      </ion-fab>
+// pestaña 3
+ <!-- pestaña 3 -->
+@if (selectedSegment === 'third') {
+  <ion-content [fullscreen]="true" class="ion-padding">
 
-      @if (esAdmin() || esComite()) {
-        <ion-card style="border: 2px solid #3880ff; border-radius: 15px; background: #f4f5f8; margin-bottom: 20px;">
-          <ion-card-header>
-            <ion-card-title style="color: #3880ff; font-weight: bold;">📊 Seguimiento del Plantel</ion-card-title>
-            <!-- BOTÓN PDF DENTRO DEL HEADER (del primer archivo) -->
+    <!-- SEGUIMIENTO DEL PLANTEL: Solo Admin y Comité/Recolector lo ven -->
+    @if (esAdmin() || esComite() || esRecolector()) {
+      <ion-card style="border: 2px solid #3880ff; border-radius: 15px; background: #f4f5f8; margin-bottom: 20px;">
+        <ion-card-header>
+          <ion-card-title style="color: #3880ff; font-weight: bold;">📊 Seguimiento del Plantel</ion-card-title>
+          
+          <!-- RESTRICCIÓN: Solo el Administrador puede generar el PDF global -->
+          @if (esAdmin()) {
             <ion-button color="danger" size="small" (click)="exportarPDF()">
               <ion-icon slot="start" name="document-outline"></ion-icon>
               PDF
             </ion-button>
-          </ion-card-header>
-          <ion-card-content>
-            <ion-item lines="none" style="--background: transparent; margin-bottom: 15px;">
-              <ion-label>
-                <h2 style="color: #3880ff; font-weight: bold; font-size: 0.9em;">
-                  OBJETIVO DEL TELEBACHILLERATO: {{ metaPlantel }} kg
-                </h2>
-                <ion-progress-bar color="primary" [value]="totalGlobal / metaPlantel" style="height: 12px; border-radius: 6px;"></ion-progress-bar>
-                <p style="text-align: right; margin-top: 5px; font-weight: bold;">
-                  {{ (totalGlobal / metaPlantel * 100).toFixed(1) }}%
-                </p>
-              </ion-label>
-            </ion-item>
-            <div style="height: 250px; position: relative;">
-              <canvas id="canvasGraficaGlobal"></canvas>
-            </div>
-            @for (g of estadisticasGlobales; track g.material) {
-              <ion-item lines="full">
-                <ion-label>{{ g.material }}</ion-label>
-                <ion-badge slot="end" color="primary">{{ g.total }} kg</ion-badge>
-              </ion-item>
-            }
-          </ion-card-content>
-        </ion-card>
-      }
-
-      <!-- El resto del contenido de estadísticas (del segundo archivo) -->
-      <ion-card class="neon-card" style="background: #1e1e1e; border: 1px solid #2dd36f; border-radius: 15px; margin-bottom: 20px;">
-        <ion-card-content>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <span style="color: #2dd36f; font-weight: bold; letter-spacing: 1px;">MI META MENSUAL</span>
-            <span style="color: white; font-weight: bold;">{{ obtenerTotalGeneral() }} / 20 kg</span>
-          </div>
-          <div style="background: #333; border-radius: 10px; height: 16px; overflow: hidden; border: 1px solid #2dd36f; box-shadow: 0 0 5px rgba(45, 211, 111, 0.2);">
-            <div [style.width.%]="(obtenerTotalGeneral() / 20) * 100" 
-                 style="background: linear-gradient(90deg, #2dd36f, #00ff88); height: 100%; transition: width 0.8s ease-in-out; box-shadow: 0 0 10px #2dd36f;">
-            </div>
-          </div>
-          <p style="font-size: 0.8em; text-align: center; margin-top: 10px; color: #aaa;">
-            @if (obtenerTotalGeneral() < 20) {
-              Te faltan <strong>{{ 20 - obtenerTotalGeneral() }} kg</strong> para alcanzar tu objetivo.
-            } @else {
-              ✨ ¡Meta cumplida! Has transformado el plantel con éxito.
-            }
-          </p>
-        </ion-card-content>
-      </ion-card>
-
-      <ion-card style="background: linear-gradient(135deg, #2dd36f, #1a7a3e); color: white; border-radius: 15px; margin-bottom: 20px;">
-        <ion-card-content class="ion-text-center">
-          <h3 style="margin: 0; opacity: 0.9; text-transform: uppercase; font-size: 0.8em;">Aportación Actual</h3>
-          <h1 style="font-size: 3em; font-weight: bold; margin: 5px 0;">{{ obtenerTotalGeneral() }} kg</h1>
-        </ion-card-content>
-      </ion-card>
-
-      <ion-card style="border-radius: 15px; background: white; margin-bottom: 20px;">
-        <ion-card-header>
-          <ion-card-title>Desglose por Material</ion-card-title>
+          }
         </ion-card-header>
         <ion-card-content>
+          <ion-item lines="none" style="--background: transparent; margin-bottom: 15px;">
+            <ion-label>
+              <h2 style="color: #3880ff; font-weight: bold; font-size: 0.9em;">
+               OBJETIVO DEL TELEBACHILLERATO ({{ mesActualNombre }}): {{ metaPlantel }} kg
+              </h2>
+              <ion-progress-bar color="primary" [value]="totalGlobal / metaPlantel" style="height: 12px; border-radius: 6px;"></ion-progress-bar>
+              <p style="text-align: right; margin-top: 5px; font-weight: bold;">
+                {{ (totalGlobal / metaPlantel * 100).toFixed(1) }}%
+              </p>
+            </ion-label>
+          </ion-item>
           <div style="height: 250px; position: relative;">
-            <canvas id="canvasGrafica"></canvas>
+            <canvas id="canvasGraficaGlobal"></canvas>
           </div>
+          @for (g of estadisticasGlobales; track g.material) {
+            <ion-item lines="full">
+              <ion-label>{{ g.material }}</ion-label>
+              <ion-badge slot="end" color="primary">{{ g.total }} kg</ion-badge>
+            </ion-item>
+          }
         </ion-card-content>
       </ion-card>
+    }
 
-      @for (e of estadisticasMostradas; track e.material) {
-        <ion-card style="border-radius: 12px; border-left: 10px solid; margin-bottom: 10px;" [style.border-color]="obtenerColor(e.material)">
-          <ion-card-header>
-            <ion-card-title style="font-size: 1.1em; font-weight: bold;">{{ e.material }}</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <p><strong>Total reciclado:</strong> {{ e.total }} kg</p>
-          </ion-card-content>
-        </ion-card>
-      }
+    <!-- META PERSONAL: Lo ven todos (Admin, Recolector y Alumno) -->
+    <ion-card class="neon-card" style="background: #1e1e1e; border: 1px solid #2dd36f; border-radius: 15px; margin-bottom: 20px;">
+      <ion-card-content>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+          <span style="color: #2dd36f; font-weight: bold; letter-spacing: 1px;">Mi meta de {{ mesActualNombre }}</span>
+          <span style="color: white; font-weight: bold;">{{ obtenerTotalGeneral() }} / 20 kg</span>
+        </div>
+        <div style="background: #333; border-radius: 10px; height: 16px; overflow: hidden; border: 1px solid #2dd36f; box-shadow: 0 0 5px rgba(45, 211, 111, 0.2);">
+          <div [style.width.%]="(obtenerTotalGeneral() / 20) * 100" 
+               style="background: linear-gradient(90deg, #2dd36f, #00ff88); height: 100%; transition: width 0.8s ease-in-out; box-shadow: 0 0 10px #2dd36f;">
+          </div>
+        </div>
+        <p style="font-size: 0.8em; text-align: center; margin-top: 10px; color: #aaa;">
+          @if (obtenerTotalGeneral() < 20) {
+            Te faltan <strong>{{ 20 - obtenerTotalGeneral() }} kg</strong> para alcanzar tu objetivo.
+          } @else {
+            ✨ ¡Meta cumplida! Has transformado el plantel con éxito.
+          }
+        </p>
+      </ion-card-content>
+    </ion-card>
 
-      <!-- Modal para generar PDF -->
-      <ion-modal trigger="open-modal-reporte" [initialBreakpoint]="0.5" [breakpoints]="[0, 0.5, 0.8]">
-        <ng-template>
-          <ion-content class="ion-padding">
-            <div style="text-align: center; padding-top: 20px;">
-              <ion-icon name="cloud-download-outline" style="font-size: 80px;" color="success"></ion-icon>
-              <h2 style="font-weight: bold;">Reporte PDF</h2>
-              <p>Genera tu evidencia oficial de reciclaje para tu estadía.</p>
-              <br>
-              <ion-button expand="block" color="danger" (click)="generarPDF()">
-                GENERAR AHORA
-              </ion-button>
-            </div>
-          </ion-content>
-        </ng-template>
-      </ion-modal>
-    </ion-content>
-  }
+    <ion-card style="background: linear-gradient(135deg, #2dd36f, #1a7a3e); color: white; border-radius: 15px; margin-bottom: 20px;">
+      <ion-card-content class="ion-text-center">
+        <h3 style="margin: 0; opacity: 0.9; text-transform: uppercase; font-size: 0.8em;">Aportación Actual</h3>
+        <h1 style="font-size: 3em; font-weight: bold; margin: 5px 0;">{{ obtenerTotalGeneral() }} kg</h1>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- GRÁFICA INDIVIDUAL: La ven todos para analizar su propio progreso -->
+    <ion-card style="border-radius: 15px; background: white; margin-bottom: 20px;">
+      <ion-card-header>
+        <ion-card-title>Desglose por Material</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div style="height: 250px; position: relative;">
+          <canvas id="canvasGrafica"></canvas>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+ @for (e of estadisticasMostradas; track e.material) {
+  <ion-card style="border-radius: 12px; border-left: 10px solid; margin-bottom: 10px;" [style.border-color]="obtenerColor(e.material)">
+    <ion-card-header>
+      <ion-card-title style="font-size: 1.1em; font-weight: bold;">{{ e.material }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Total reciclado:</strong> {{ e.total }} kg</p>
+    </ion-card-content>
+  </ion-card>
+}
+    
+
+    <ion-modal trigger="open-modal-reporte" [initialBreakpoint]="0.5" [breakpoints]="[0, 0.5, 0.8]">
+      <ng-template>
+        <ion-content class="ion-padding">
+          <div style="text-align: center; padding-top: 20px;">
+            <ion-icon name="cloud-download-outline" style="font-size: 80px;" color="success"></ion-icon>
+            <h2 style="font-weight: bold;">Reporte PDF</h2>
+            <p>Genera tu evidencia oficial de reciclaje para tu estadía.</p>
+            <br>
+            <ion-button expand="block" color="danger" (click)="generarPDF()">
+              GENERAR AHORA
+            </ion-button>
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+  </ion-content>
+}
 </ion-segment-view>
-
-<!-- Modal evidencia (para ver fotos grandes) -->
 <ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()">
   <ng-template>
     <div class="modal-container" style="padding: 20px; text-align: center;">

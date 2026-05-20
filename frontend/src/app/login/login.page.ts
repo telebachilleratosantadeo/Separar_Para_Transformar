@@ -30,15 +30,24 @@ export class LoginPage {
   iniciarSesion() {
   this.http.post<any>(`${this.apiUrl}/login`, this.login).subscribe({
     next: (res) => {
+      // Si tu API devuelve un 200 pero manejas una propiedad .success dentro del JSON
       if (res.success) {
         localStorage.setItem('usuario', JSON.stringify(res.usuario));
-        // 👇 Ajusta aquí la ruta
         this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
       } else {
         alert('❌ CURP o contraseña incorrectos');
       }
     },
-    error: () => alert('❌ Error al conectar con API')
+    error: (err) => {
+      // 💡 Aquí atrapamos el error y revisamos su código de estado HTTP
+      if (err.status === 401) {
+        alert('❌ Credenciales inválidas: CURP o contraseña incorrectos');
+      } else if (err.status === 0) {
+        alert('❌ No se pudo conectar con el servidor. Verifica tu internet o si la API está encendida.');
+      } else {
+        alert(`❌ Error inesperado (${err.status}): ${err.message}`);
+      }
+    }
   });
-}
-}
+  }
+} 

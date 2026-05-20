@@ -1,73 +1,14 @@
-/* Fondo general */
+/* =========================================
+   FONDO Y ESTRUCTURA GENERAL
+   ========================================= */
 ion-content {
   --background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  --padding-bottom: 20px;
 }
 
-/* Toolbar */
-ion-toolbar {
-  --background: linear-gradient(90deg, #2e7d32, #66bb6a);
-  --color: #ffffff;
-  text-align: center;
-}
-
-/* Imagen */
-ion-card img {
-  border-radius: 15px;
-  height: 200px;
-  object-fit: cover;
-  width: 100%;
-}
-
-/* Cards generales */
-ion-card {
-  border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  margin-bottom: 20px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-ion-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
-}
-
-/* Títulos */
-ion-card-title {
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: #2e7d32;
-  text-align: center;
-}
-
-/* Inputs */
-ion-item {
-  --background: #ffffff;
-  border-radius: 12px;
-  margin-bottom: 10px;
-}
-
-ion-input, ion-select {
-  --padding-start: 10px;
-}
-
-/* Botones */
-ion-button {
-  margin-top: 10px;
-  border-radius: 12px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-}
-
-/* Resultado */
-ion-text p {
-  background: #f1f8e9;
-  padding: 10px;
-  border-radius: 10px;
-  margin-top: 10px;
-  font-weight: 500;
-}
-
-/* Toolbar personalizado */
+/* =========================================
+   TOOLBAR - BARRA VERDE CON LOGO
+   ========================================= */
 .custom-toolbar {
   --background: linear-gradient(90deg, #2e7d32, #66bb6a);
   --color: #ffffff;
@@ -78,7 +19,6 @@ ion-text p {
   padding-bottom: 15px;
 }
 
-/* Contenedor de imagen */
 .header-image-container {
   width: 100%;
   display: flex;
@@ -86,7 +26,6 @@ ion-text p {
   margin-bottom: 8px;
 }
 
-/* Imagen del header */
 .header-image-container img {
   width: 120px;
   height: 120px;
@@ -94,4 +33,394 @@ ion-text p {
   border-radius: 50%;
   border: 4px solid white;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+ion-title {
+  font-weight: 800;
+  letter-spacing: 2px;
+  font-size: 1.3rem;
+}
+
+/* =========================================
+   LOADING (SPINNER)
+   ========================================= */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 15px;
+}
+
+.loading-container p {
+  color: #2e7d32;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* =========================================
+   TARJETA DE GUÍA PRINCIPAL
+   ========================================= */
+.card-guia {
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  margin-top: 10px;
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.card-guia ion-item {
+  --background: transparent;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+}
+
+.guia-icon {
+  font-size: 2rem;
+  margin-right: 12px;
+}
+
+.card-guia h2 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #c62828;
+  margin-bottom: 6px;
+}
+
+.card-guia p {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* =========================================
+   INDICADOR DE SEMANA
+   ========================================= */
+.indicador-semana {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 15px 0 20px 0;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(46, 125, 50, 0.85), rgba(102, 187, 106, 0.85));
+  border-radius: 40px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.indicador-semana span {
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.indicador-semana ion-icon {
+  font-size: 1.2rem;
+  color: #ffd700;
+}
+
+/* =========================================
+   TARJETAS DE ALERTA (ANCHAS)
+   ========================================= */
+.card-alerta {
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 14px;
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.card-alerta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.card-alerta:active {
+  transform: scale(0.99);
+}
+
+.card-alerta ion-item {
+  --background: transparent;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+}
+
+/* Estilos por prioridad */
+.alerta-alta {
+  border-left: 5px solid #d32f2f;
+  background: linear-gradient(135deg, #ffffff 0%, #ffebee 100%);
+}
+
+.alerta-media {
+  border-left: 5px solid #f57c00;
+  background: linear-gradient(135deg, #ffffff 0%, #fff3e0 100%);
+}
+
+.alerta-baja {
+  border-left: 5px solid #4caf50;
+  background: linear-gradient(135deg, #ffffff 0%, #e8f5e9 100%);
+}
+
+/* Iconos circulares */
+.icono-alerta-rojo,
+.icono-alerta-naranja,
+.icono-alerta-verde {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 14px;
+  flex-shrink: 0;
+}
+
+.icono-alerta-rojo {
+  background: #ffebee;
+}
+.icono-alerta-rojo ion-icon {
+  font-size: 28px;
+  color: #d32f2f;
+}
+
+.icono-alerta-naranja {
+  background: #fff3e0;
+}
+.icono-alerta-naranja ion-icon {
+  font-size: 28px;
+  color: #f57c00;
+}
+
+.icono-alerta-verde {
+  background: #e8f5e9;
+}
+.icono-alerta-verde ion-icon {
+  font-size: 28px;
+  color: #388e3c;
+}
+
+/* Badges */
+.badge-rojo,
+.badge-naranja,
+.badge-verde {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+  font-family: inherit;
+}
+
+.badge-rojo {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.badge-naranja {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.badge-verde {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+/* Títulos */
+.titulo-alerta-rojo,
+.titulo-alerta-naranja,
+.titulo-alerta-verde {
+  font-size: 1rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  font-family: inherit;
+}
+
+.titulo-alerta-rojo {
+  color: #d32f2f;
+}
+
+.titulo-alerta-naranja {
+  color: #f57c00;
+}
+
+.titulo-alerta-verde {
+  color: #388e3c;
+}
+
+/* Descripción */
+.descripcion-alerta {
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.4;
+  margin: 0;
+  font-family: inherit;
+}
+
+.descripcion-alerta strong {
+  color: inherit;
+}
+
+/* =========================================
+   SECCIÓN DE API (RECURSOS EXTERNOS)
+   ========================================= */
+.separador-api {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 25px 0 15px 0;
+  padding: 10px;
+}
+
+.separador-api ion-icon {
+  font-size: 22px;
+  color: #1976d2;
+}
+
+.separador-api span {
+  color: #1976d2;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.card-api {
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 14px;
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e3f2fd;
+  transition: all 0.3s ease;
+}
+
+.card-api:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.card-api ion-item {
+  --background: transparent;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+}
+
+.card-api h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 4px;
+}
+
+.card-api p {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0;
+}
+
+/* =========================================
+   MENSAJE FINAL
+   ========================================= */
+.mensaje-final {
+  text-align: center;
+  margin: 30px 0 40px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.mensaje-final ion-icon {
+  font-size: 2rem;
+  color: #ffd700;
+  margin-bottom: 10px;
+}
+
+.mensaje-final p {
+  color: #2e7d32;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* =========================================
+   ANIMACIONES
+   ========================================= */
+.card-guia {
+  animation: fadeInUp 0.4s ease-out backwards;
+  animation-delay: 0.05s;
+}
+
+.card-alerta {
+  animation: fadeInUp 0.4s ease-out backwards;
+}
+
+.card-alerta:nth-child(1) { animation-delay: 0.1s; }
+.card-alerta:nth-child(2) { animation-delay: 0.15s; }
+.card-alerta:nth-child(3) { animation-delay: 0.2s; }
+.card-alerta:nth-child(4) { animation-delay: 0.25s; }
+.card-alerta:nth-child(5) { animation-delay: 0.3s; }
+.card-alerta:nth-child(6) { animation-delay: 0.35s; }
+
+.card-api {
+  animation: fadeInUp 0.4s ease-out backwards;
+  animation-delay: 0.4s;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+@media (min-width: 768px) {
+  ion-list {
+    max-width: 100%;
+    margin: 0;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .card-guia, .card-alerta, .card-api {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-guia, .card-alerta, .card-api {
+    animation: none;
+  }
 }

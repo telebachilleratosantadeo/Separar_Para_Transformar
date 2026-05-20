@@ -3,7 +3,7 @@ const cors = require('cors');
 const db = require('./database'); 
 const PDFDocument = require('pdfkit');
 const app = express();
-
+const path = require('path');
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -55,54 +55,82 @@ app.post('/reciclaje', async (req, res) => {
         res.status(500).json({ success: false, mensaje: 'Error al guardar' });
     }
 });
-app.get('/estadisticas/:usuario_id', async (req, res) => {
-    const { usuario_id } = req.params;
-    const query = `
-        SELECT 
-            COALESCE(m.nombre, 'Otro') as material, 
-            SUM(r.cantidad) as total 
-        FROM reciclaje r 
-        LEFT JOIN residuos m ON r.residuo_id = m.id 
-        WHERE r.usuario_id = ? AND r.estado = 'aprobado' 
-        GROUP BY COALESCE(m.nombre, 'Otro')`;
-
+app.get('/estadisticas/:usuarioId', async (req, res) => {
     try {
-        const [rows] = await db.query(query, [usuario_id]);
+        const { usuarioId } = req.params;
+        const query = `
+            SELECT 
+                CASE 
+                    WHEN r.nombre IN ('Plástico', 'Vidrio', 'Papel', 'Orgánico') THEN r.nombre
+                    ELSE 'Otro'
+                END AS material, 
+                SUM(rec.cantidad) AS total, 
+                rec.usuario_id
+            FROM reciclaje rec
+            LEFT JOIN residuos r ON rec.residuo_id = r.id
+            WHERE rec.usuario_id = ? 
+              AND rec.estado = 'aprobado'
+              AND MONTH(rec.fecha) = MONTH(CURRENT_DATE())
+              AND YEAR(rec.fecha) = YEAR(CURRENT_DATE())
+            GROUP BY 
+                CASE 
+                    WHEN r.nombre IN ('Plástico', 'Vidrio', 'Papel', 'Orgánico') THEN r.nombre
+                    ELSE 'Otro'
+                END, 
+                rec.usuario_id
+        `;
+        const [rows] = await db.query(query, [usuarioId]);
         res.json(rows);
     } catch (err) {
-        console.error("❌ Error en estadísticas individuales:", err);
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        res.status(500).json({ error: "Error al obtener estadísticas mensuales" });
     }
 });
 app.get('/admin/estadisticas-globales', async (req, res) => {
-    const query = `
-        SELECT 
-            COALESCE(m.nombre, 'Otro') as material, 
-            SUM(r.cantidad) as total 
-        FROM reciclaje r 
-        LEFT JOIN residuos m ON r.residuo_id = m.id 
-        WHERE r.estado = 'aprobado' 
-        GROUP BY COALESCE(m.nombre, 'Otro')`;
     try {
+        const query = `
+            SELECT 
+                CASE 
+                    WHEN r.nombre IN ('Plástico', 'Vidrio', 'Papel', 'Orgánico') THEN r.nombre
+                    ELSE 'Otro'
+                END AS material, 
+                SUM(rec.cantidad) AS total
+            FROM reciclaje rec
+            LEFT JOIN residuos r ON rec.residuo_id = r.id
+            WHERE rec.estado = 'aprobado'
+              AND MONTH(rec.fecha) = MONTH(CURRENT_DATE())
+              AND YEAR(rec.fecha) = YEAR(CURRENT_DATE())
+            GROUP BY 
+                CASE 
+                    WHEN r.nombre IN ('Plástico', 'Vidrio', 'Papel', 'Orgánico') THEN r.nombre
+                    ELSE 'Otro'
+                END
+        `;
         const [rows] = await db.query(query);
         res.json(rows);
     } catch (err) {
-        console.error("Error en globales:", err); 
-        res.status(500).json({ error: err.message });
+        console.error("❌ Error en globales:", err);
+        res.status(500).json({ error: "Error al obtener globales mensuales" });
     }
 });
 
 app.get('/impacto-total/:usuario_id', async (req, res) => {
     const { usuario_id } = req.params;
     try {
-        const [rows] = await db.query('SELECT SUM(cantidad) as total FROM reciclaje WHERE usuario_id = ?', [usuario_id]);
+        const query = `
+            SELECT SUM(cantidad) as total 
+            FROM reciclaje 
+            WHERE usuario_id = ? 
+              AND estado = 'aprobado'
+              AND MONTH(fecha) = MONTH(CURRENT_DATE())
+              AND YEAR(fecha) = YEAR(CURRENT_DATE())
+        `;
+        const [rows] = await db.query(query, [usuario_id]);
         res.json({ total: rows[0].total || 0 });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
-
-//perfil usuario
 app.get('/usuario/:id', async (req, res) => {
     try {
         const [rows] = await db.query('SELECT * FROM usuarios WHERE id = ?', [req.params.id]);
@@ -162,8 +190,6 @@ app.get('/alertas', async (req, res) => {
         res.json(rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
-//historial de reciclajes de un usuario
 app.get('/reciclajes/:usuario_id', async (req, res) => {
     try {
         const [rows] = await db.query(
@@ -242,15 +268,29 @@ app.put('/admin/asignar-recolector/:reciclaje_id', async (req, res) => {
     }
 });
 
+const { ChartJSNodeCanvas } = require('chartjs-node-canvas'); // 1. Importar al inicio del archivo
 app.get('/admin/exportar-pdf', async (req, res) => {
     try {
+        // --- 1. CONFIGURACIÓN DEL GENERADOR (Hacemos la gráfica un poco más ancha para las barras) ---
+        const width = 450;
+        const height = 250;
+        const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
+
         const doc = new PDFDocument({ margin: 50 });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename=Reporte_Detallado_Impacto.pdf');
 
         doc.pipe(res);
 
-        // --- ENCABEZADO ---
+        // Logo del plantel
+        const logoPath = path.join(__dirname, '..', 'frontend', 'src', 'app', 'assets', 'TBCST.jpeg');
+        try {
+            doc.image(logoPath, 450, 40, { width: 100 });
+        } catch (e) {
+            console.error("No se pudo cargar el logo en el PDF:", e.message);
+        }
+
+        // Encabezado
         doc.fontSize(22).fillColor('#2ecc71').text('REPORTE DE IMPACTO AMBIENTAL', { align: 'left' });
         doc.moveDown(0.2);
         doc.fontSize(14).fillColor('#7f8c8d').text('Telebachillerato Comunitario "San Tadeo"', { align: 'left' });
@@ -258,32 +298,103 @@ app.get('/admin/exportar-pdf', async (req, res) => {
         const fechaReporte = new Date().toLocaleDateString();
         doc.moveDown(0.5);
         doc.fontSize(10).fillColor('#333').text(`Fecha de emisión: ${fechaReporte}`);
-        doc.moveDown(2);
+        doc.moveDown(1.5);
 
-        // --- CONSULTA DETALLADA (Con Nombre y Fecha) ---
+        // --- 2. CONSULTA DE DATOS ---
         const query = `
             SELECT 
                 u.nombre AS alumno, 
-                r.nombre AS material, 
+                IFNULL(r.nombre, IFNULL(rec.otro_material, 'Otro')) AS material, 
                 rec.cantidad, 
                 rec.fecha
             FROM reciclaje rec
             JOIN usuarios u ON rec.usuario_id = u.id
-            JOIN residuos r ON rec.residuo_id = r.id
+            LEFT JOIN residuos r ON rec.residuo_id = r.id
             WHERE rec.estado = 'aprobado'
+              AND MONTH(rec.fecha) = MONTH(CURRENT_DATE())
+              AND YEAR(rec.fecha) = YEAR(CURRENT_DATE())
             ORDER BY rec.fecha DESC
         `;
-
         const [rows] = await db.query(query);
 
-        // --- CONFIGURACIÓN DE LA TABLA ---
-        const tableTop = 180;
+        // --- 3. AGRUPAR CANTIDADES PARA LAS BARRAS ---
+        const mapeoColores = {
+            'Plástico': '#f1c40f', // Amarillo
+            'Vidrio': '#2ecc71',   // Verde
+            'Papel': '#3498db',    // Azul
+            'Orgánico': '#e67e22', // Naranja
+            'Otro': '#95a5a6'      // Gris
+        };
+
+        const totalesPorMaterial = {
+            'Plástico': 0,
+            'Vidrio': 0,
+            'Papel': 0,
+            'Orgánico': 0,
+            'Otro': 0
+        };
+
+        // Sumamos los kg reales
+        rows.forEach(row => {
+            const cat = ['Plástico', 'Vidrio', 'Papel', 'Orgánico'].includes(row.material) ? row.material : 'Otro';
+            totalesPorMaterial[cat] += parseFloat(row.cantidad);
+        });
+
+        // Filtramos para mostrar en la gráfica solo los materiales que sí tengan algo reciclado (para que no salgan barras en 0)
+        const labels = Object.keys(totalesPorMaterial).filter(key => totalesPorMaterial[key] > 0);
+        const dataValores = labels.map(key => totalesPorMaterial[key]);
+        const backgroundColors = labels.map(label => mapeoColores[label]);
+
+        const totalReciclado = rows.reduce((sum, row) => sum + parseFloat(row.cantidad), 0);
+        
+        doc.fontSize(12).fillColor('#2c3e50').text(`Impacto Total Acumulado este mes: `, { continued: true });
+        doc.fillColor('#2ecc71').text(`${totalReciclado.toFixed(2)} kg de residuos.`);
+        doc.moveDown(1);
+
+        // --- 4. RENDERIZAR GRÁFICA DE BARRAS EN MEMORIA ---
+        if (labels.length > 0) {
+            const configuration = {
+                type: 'bar', // 📊 Cambiado a tipo barra
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Kilogramos (kg)',
+                        data: dataValores,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 1,
+                        borderColor: '#7f8c8d'
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: {
+                        legend: { display: false } // Quitamos la leyenda de arriba porque cada barra tiene su nombre abajo
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Cantidad (kg)', font: { size: 10 } }
+                        },
+                        x: {
+                            title: { display: true, text: 'Materiales', font: { size: 10 } }
+                        }
+                    }
+                }
+            };
+
+            const imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
+            // Centramos la gráfica de barras en el PDF
+            doc.image(imageBuffer, 80, doc.y, { width: 440 });
+            doc.y += 270; // Bajamos el cursor para dejarle espacio a la tabla
+        }
+
+        // --- 5. TABLA DETALLADA ---
+        const tableTop = doc.y; 
         const colAlumno = 50;
         const colMaterial = 200;
         const colCantidad = 350;
         const colFecha = 450;
 
-        // Encabezado de la tabla (Verde)
         doc.rect(50, tableTop, 510, 25).fill('#2ecc71');
         doc.fontSize(10).fillColor('#FFFFFF');
         doc.text('Alumno', colAlumno + 5, tableTop + 8);
@@ -291,18 +402,20 @@ app.get('/admin/exportar-pdf', async (req, res) => {
         doc.text('Cantidad', colCantidad + 5, tableTop + 8);
         doc.text('Fecha', colFecha + 5, tableTop + 8);
 
-        // Filas de la tabla
         let y = tableTop + 25;
         doc.fillColor('#333');
 
         if (rows.length === 0) {
             doc.rect(50, y, 510, 20).stroke('#ecf0f1');
-            doc.text('No hay registros de reciclaje aprobados.', colAlumno + 5, y + 6);
+            doc.text('No hay registros de reciclaje aprobados en este mes.', colAlumno + 5, y + 6);
         } else {
             rows.forEach((row) => {
-                // Dibujar celda
+                if (y > 700) {
+                    doc.addPage();
+                    y = 50;
+                }
+
                 doc.rect(50, y, 510, 20).stroke('#ecf0f1');
-                
                 const fechaEntrega = new Date(row.fecha).toLocaleDateString();
                 
                 doc.fontSize(9).fillColor('#333');
@@ -312,24 +425,18 @@ app.get('/admin/exportar-pdf', async (req, res) => {
                 doc.text(fechaEntrega, colFecha + 5, y + 6);
                 
                 y += 20;
-
-                // Si se acaba el espacio en la página, crear una nueva
-                if (y > 700) {
-                    doc.addPage();
-                    y = 50; // Reiniciar Y en la nueva página
-                }
             });
         }
 
         doc.end();
 
     } catch (err) {
-        console.error("Error al generar el PDF:", err);
+        console.error("Error al generar el PDF con barra:", err);
         if (!res.headersSent) {
             res.status(500).json({ error: "Error al generar el reporte" });
         }
     }
-}); 
+});
 app.listen(PORT, () => {
     console.log(`✅ Servidor MySQL corriendo en http://localhost:${PORT}`);
 });
