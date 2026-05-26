@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // 🔥 Necesario para [(ngModel)]
+import { FormsModule } from '@angular/forms'; 
 import { IonicModule, NavController, ToastController } from '@ionic/angular';
 import { UserService } from '../services/user.service';
 
@@ -9,10 +9,9 @@ import { UserService } from '../services/user.service';
   templateUrl: './editar-usuario.page.html',
   styleUrls: ['./editar-usuario.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule] // 🔥 Agregamos los 3 necesarios
+  imports: [IonicModule, CommonModule, FormsModule] 
 })
 export class EditarUsuarioPage implements OnInit {
-  // 🔥 Definimos la propiedad usuario para que el HTML la reconozca
   usuario: any = {
     nombre: '',
     apellidos: '',
@@ -27,7 +26,6 @@ export class EditarUsuarioPage implements OnInit {
   ) { }
 
   ngOnInit() {
-    // Si hay un usuario seleccionado en el servicio, lo cargamos
     if (this.userService.usuarioSeleccionado) {
       this.usuario = this.userService.usuarioSeleccionado;
     }

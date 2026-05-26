@@ -4,16 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ToastController } from '@ionic/angular';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-
-// Ionic standalone
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonCard,
   IonCardHeader, IonCardTitle, IonCardContent, IonItem,
   IonLabel, IonSelect, IonSelectOption, IonInput, IonButton,
   IonIcon
 } from '@ionic/angular/standalone';
-
-// Íconos
 import { addIcons } from 'ionicons';
 import { cameraOutline, imageOutline, leafOutline, saveOutline } from 'ionicons/icons';
 
@@ -33,13 +29,11 @@ import { cameraOutline, imageOutline, leafOutline, saveOutline } from 'ionicons/
   ]
 })
 export class Tab1Page {
-  // Datos del formulario
+  
   material: number | 'otro' | null = null;
   otroMaterial: string = '';
   cantidad: number | null = null;
   fotoBase64: string | undefined = undefined;
-  
-  // Fecha automática para el registro semanal
   fechaRegistro: string = new Date().toISOString().split('T')[0];
 
   API = 'http://localhost:3000';
@@ -48,7 +42,6 @@ export class Tab1Page {
     private toastController: ToastController,
     private http: HttpClient
   ) {
-    // Mantengo tus iconos y agrego los del proyecto
     addIcons({ cameraOutline, imageOutline, leafOutline, saveOutline });
   }
 
@@ -59,8 +52,6 @@ export class Tab1Page {
     if (this.material === 4) return 'Ej. 1 kg de Orgánico';
     return 'Ingresa la cantidad';
   }
-
-  // --- LÓGICA DE CÁMARA (Sin cambios en tu lógica original) ---
   async tomarFoto() {
     try {
       const image = await Camera.getPhoto({
@@ -88,8 +79,6 @@ export class Tab1Page {
       console.error('Error galería', error);
     }
   }
-
-  // --- LÓGICA DE REGISTRO (Punto 2 del Proyecto) ---
   async registrarReciclaje() {
     if (!this.material || !this.cantidad || this.cantidad <= 0) {
       this.mostrarMensaje('Completa material y cantidad válidos', 'warning');
@@ -113,10 +102,10 @@ export class Tab1Page {
       usuario_id: usuario.id,
       otro_material: this.material === 'otro' ? this.otroMaterial.trim() : null,
       foto: this.fotoBase64 || null,
-      fecha: this.fechaRegistro // Importante para el seguimiento semanal
+      fecha: this.fechaRegistro 
     };
 
-    // Usamos la ruta /reciclaje que ya tienes configurada
+    
     this.http.post(`${this.API}/reciclaje`, datos).subscribe({
       next: () => {
         this.mostrarMensaje('✅ Registro guardado en San Tadeo', 'success');

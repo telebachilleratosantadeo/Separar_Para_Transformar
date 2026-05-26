@@ -8,7 +8,7 @@ import { leafOutline, bookOutline, locateOutline, libraryOutline, personOutline,
   templateUrl: 'tabs.page.html',
   styleUrls: ['tabs.page.scss'],
   standalone: true,
-  imports: [IonRouterOutlet, IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel] 
+  imports: [ IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel] 
 })
 export class TabsPage {
   public environmentInjector = inject(EnvironmentInjector);

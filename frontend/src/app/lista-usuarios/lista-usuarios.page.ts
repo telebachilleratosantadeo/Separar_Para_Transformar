@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common'; // 🔥 Necesario para *ngFor
-import { IonicModule } from '@ionic/angular'; // 🔥 Importación rápida para todos los componentes
+import { CommonModule } from '@angular/common'; 
+import { IonicModule } from '@ionic/angular'; 
 import { UserService } from '../services/user.service';
 import { Router } from '@angular/router';
 
@@ -8,8 +8,8 @@ import { Router } from '@angular/router';
   selector: 'app-lista-usuarios',
   templateUrl: './lista-usuarios.page.html',
   styleUrls: ['./lista-usuarios.page.scss'],
-  standalone: true, // Asegúrate de que diga true
-  imports: [IonicModule, CommonModule] // 🔥 Agregamos IonicModule y CommonModule aquí
+  standalone: true, 
+  imports: [IonicModule, CommonModule] 
 })
 export class ListaUsuariosPage implements OnInit {
   usuarios: any[] = [];

@@ -268,10 +268,10 @@ app.put('/admin/asignar-recolector/:reciclaje_id', async (req, res) => {
     }
 });
 
-const { ChartJSNodeCanvas } = require('chartjs-node-canvas'); // 1. Importar al inicio del archivo
+const { ChartJSNodeCanvas } = require('chartjs-node-canvas'); 
 app.get('/admin/exportar-pdf', async (req, res) => {
     try {
-        // --- 1. CONFIGURACIÓN DEL GENERADOR (Hacemos la gráfica un poco más ancha para las barras) ---
+        
         const width = 450;
         const height = 250;
         const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
@@ -282,7 +282,7 @@ app.get('/admin/exportar-pdf', async (req, res) => {
 
         doc.pipe(res);
 
-        // Logo del plantel
+        
         const logoPath = path.join(__dirname, '..', 'frontend', 'src', 'app', 'assets', 'TBCST.jpeg');
         try {
             doc.image(logoPath, 450, 40, { width: 100 });
@@ -290,7 +290,7 @@ app.get('/admin/exportar-pdf', async (req, res) => {
             console.error("No se pudo cargar el logo en el PDF:", e.message);
         }
 
-        // Encabezado
+       
         doc.fontSize(22).fillColor('#2ecc71').text('REPORTE DE IMPACTO AMBIENTAL', { align: 'left' });
         doc.moveDown(0.2);
         doc.fontSize(14).fillColor('#7f8c8d').text('Telebachillerato Comunitario "San Tadeo"', { align: 'left' });
@@ -300,7 +300,7 @@ app.get('/admin/exportar-pdf', async (req, res) => {
         doc.fontSize(10).fillColor('#333').text(`Fecha de emisión: ${fechaReporte}`);
         doc.moveDown(1.5);
 
-        // --- 2. CONSULTA DE DATOS ---
+       
         const query = `
             SELECT 
                 u.nombre AS alumno, 
@@ -317,13 +317,13 @@ app.get('/admin/exportar-pdf', async (req, res) => {
         `;
         const [rows] = await db.query(query);
 
-        // --- 3. AGRUPAR CANTIDADES PARA LAS BARRAS ---
+        
         const mapeoColores = {
-            'Plástico': '#f1c40f', // Amarillo
-            'Vidrio': '#2ecc71',   // Verde
-            'Papel': '#3498db',    // Azul
-            'Orgánico': '#e67e22', // Naranja
-            'Otro': '#95a5a6'      // Gris
+            'Plástico': '#f1c40f', 
+            'Vidrio': '#2ecc71',   
+            'Papel': '#3498db',    
+            'Orgánico': '#e67e22', 
+            'Otro': '#95a5a6'      
         };
 
         const totalesPorMaterial = {
@@ -334,13 +334,13 @@ app.get('/admin/exportar-pdf', async (req, res) => {
             'Otro': 0
         };
 
-        // Sumamos los kg reales
+      
         rows.forEach(row => {
             const cat = ['Plástico', 'Vidrio', 'Papel', 'Orgánico'].includes(row.material) ? row.material : 'Otro';
             totalesPorMaterial[cat] += parseFloat(row.cantidad);
         });
 
-        // Filtramos para mostrar en la gráfica solo los materiales que sí tengan algo reciclado (para que no salgan barras en 0)
+       
         const labels = Object.keys(totalesPorMaterial).filter(key => totalesPorMaterial[key] > 0);
         const dataValores = labels.map(key => totalesPorMaterial[key]);
         const backgroundColors = labels.map(label => mapeoColores[label]);
@@ -351,10 +351,10 @@ app.get('/admin/exportar-pdf', async (req, res) => {
         doc.fillColor('#2ecc71').text(`${totalReciclado.toFixed(2)} kg de residuos.`);
         doc.moveDown(1);
 
-        // --- 4. RENDERIZAR GRÁFICA DE BARRAS EN MEMORIA ---
+        
         if (labels.length > 0) {
             const configuration = {
-                type: 'bar', // 📊 Cambiado a tipo barra
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
@@ -368,7 +368,7 @@ app.get('/admin/exportar-pdf', async (req, res) => {
                 options: {
                     responsive: false,
                     plugins: {
-                        legend: { display: false } // Quitamos la leyenda de arriba porque cada barra tiene su nombre abajo
+                        legend: { display: false } 
                     },
                     scales: {
                         y: {
@@ -383,12 +383,12 @@ app.get('/admin/exportar-pdf', async (req, res) => {
             };
 
             const imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
-            // Centramos la gráfica de barras en el PDF
+          
             doc.image(imageBuffer, 80, doc.y, { width: 440 });
-            doc.y += 270; // Bajamos el cursor para dejarle espacio a la tabla
+            doc.y += 270;
         }
 
-        // --- 5. TABLA DETALLADA ---
+        
         const tableTop = doc.y; 
         const colAlumno = 50;
         const colMaterial = 200;

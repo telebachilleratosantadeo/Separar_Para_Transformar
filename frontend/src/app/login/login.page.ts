@@ -30,7 +30,6 @@ export class LoginPage {
   iniciarSesion() {
   this.http.post<any>(`${this.apiUrl}/login`, this.login).subscribe({
     next: (res) => {
-      // Si tu API devuelve un 200 pero manejas una propiedad .success dentro del JSON
       if (res.success) {
         localStorage.setItem('usuario', JSON.stringify(res.usuario));
         this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
@@ -39,7 +38,6 @@ export class LoginPage {
       }
     },
     error: (err) => {
-      // 💡 Aquí atrapamos el error y revisamos su código de estado HTTP
       if (err.status === 401) {
         alert('❌ Credenciales inválidas: CURP o contraseña incorrectos');
       } else if (err.status === 0) {

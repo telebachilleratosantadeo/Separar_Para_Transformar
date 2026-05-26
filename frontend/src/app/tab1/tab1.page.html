@@ -15,8 +15,6 @@
     </ion-card-header>
 
     <ion-card-content>
-
-      <!-- MATERIAL -->
       <ion-item>
         <ion-label>Material</ion-label>
         <ion-select [(ngModel)]="material">
@@ -27,16 +25,12 @@
           <ion-select-option value="otro">Otro</ion-select-option>
         </ion-select>
       </ion-item>
-
-      <!-- OTRO MATERIAL -->
       <ion-item *ngIf="material === 'otro'">
         <ion-input
           placeholder="Especifica qué material es..."
           [(ngModel)]="otroMaterial">
         </ion-input>
       </ion-item>
-
-      <!-- CANTIDAD -->
       <ion-item>
         <ion-input
           type="number"
@@ -44,8 +38,6 @@
           [(ngModel)]="cantidad">
         </ion-input>
       </ion-item>
-
-      <!-- FOTO -->
       <ion-item>
         <ion-label position="stacked">Evidencia (Foto)</ion-label>
 
@@ -59,14 +51,9 @@
           Elegir de Galería
         </ion-button>
       </ion-item>
-
-      <!-- PREVIEW -->
        <ion-item *ngIf="fotoBase64">
         <img [src]="'data:image/jpeg;base64,' + fotoBase64" style="width: 100%; border-radius: 8px;" />
       </ion-item>
-
-
-      <!-- BOTÓN -->
       <ion-button expand="block" (click)="registrarReciclaje()">
         Registrar
       </ion-button>

@@ -207,11 +207,26 @@
   }
 
  //pestaña 2
-  @if (selectedSegment === 'second') {
+@if (selectedSegment === 'second') {
     <ion-content [fullscreen]="true" class="ion-padding bg-light">
+      
       <ion-card style="background: #2e7d32; color: white; margin-bottom: 15px;">
-        <ion-card-content class="ion-text-center">
-          <strong>📊 Total reciclajes: {{ reciclajes.length }}</strong>
+        <ion-card-content style="padding: 12px 10px;">
+          <div style="display: flex; justify-content: space-around; align-items: center; text-align: center;">
+            
+            <div>
+              <p style="margin: 0; font-size: 11px; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px;">Enviados</p>
+              <strong style="font-size: 16px;">📊 Total: {{ reciclajes.length }}</strong>
+            </div>
+
+            <div style="border-left: 1px solid rgba(255,255,255,0.3); height: 30px;"></div>
+
+            <div>
+              <p style="margin: 0; font-size: 11px; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px;">Aprobados</p>
+              <strong style="font-size: 16px;">✅ Oficial: {{ totalAprobados }}</strong>
+            </div>
+
+          </div>
         </ion-card-content>
       </ion-card>
 
@@ -256,17 +271,12 @@
   }
 
 // pestaña 3
- <!-- pestaña 3 -->
 @if (selectedSegment === 'third') {
   <ion-content [fullscreen]="true" class="ion-padding">
-
-    <!-- SEGUIMIENTO DEL PLANTEL: Solo Admin y Comité/Recolector lo ven -->
     @if (esAdmin() || esComite() || esRecolector()) {
       <ion-card style="border: 2px solid #3880ff; border-radius: 15px; background: #f4f5f8; margin-bottom: 20px;">
         <ion-card-header>
           <ion-card-title style="color: #3880ff; font-weight: bold;">📊 Seguimiento del Plantel</ion-card-title>
-          
-          <!-- RESTRICCIÓN: Solo el Administrador puede generar el PDF global -->
           @if (esAdmin()) {
             <ion-button color="danger" size="small" (click)="exportarPDF()">
               <ion-icon slot="start" name="document-outline"></ion-icon>
@@ -298,8 +308,6 @@
         </ion-card-content>
       </ion-card>
     }
-
-    <!-- META PERSONAL: Lo ven todos (Admin, Recolector y Alumno) -->
     <ion-card class="neon-card" style="background: #1e1e1e; border: 1px solid #2dd36f; border-radius: 15px; margin-bottom: 20px;">
       <ion-card-content>
         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
@@ -327,8 +335,6 @@
         <h1 style="font-size: 3em; font-weight: bold; margin: 5px 0;">{{ obtenerTotalGeneral() }} kg</h1>
       </ion-card-content>
     </ion-card>
-
-    <!-- GRÁFICA INDIVIDUAL: La ven todos para analizar su propio progreso -->
     <ion-card style="border-radius: 15px; background: white; margin-bottom: 20px;">
       <ion-card-header>
         <ion-card-title>Desglose por Material</ion-card-title>

@@ -68,58 +68,56 @@ ion-button {
 }
 .header-image-container {
   display: flex;
-  flex-direction: column; // Hace que los elementos se apilen hacia abajo
-  align-items: center;    // Centra el logo y los textos horizontalmente
+  flex-direction: column; 
+  align-items: center;  
   justify-content: center;
-  margin-top: 20px;       // Espacio superior opcional
-  margin-bottom: 10px;    // Espacio antes de que empiece la tarjeta de login
-
+  margin-top: 20px;       
+  margin-bottom: 10px;    
   img {
-    max-width: 150px;     // O el tamaño que ya tengas configurado para tu logo
+    max-width: 150px;     
     height: auto;
-    margin-bottom: 15px;  // Espacio entre el logo y el título del proyecto
+    margin-bottom: 15px;  
   }
 }
 
-// Estilos para el Título del Proyecto
+
 .project-title {
-  font-size: 1.4rem;      // Tamaño destacado pero sutil
+  font-size: 1.4rem;    
   font-weight: bold;
-  color: var(--ion-color-dark); // Usa las variables de color de Ionic
-  margin: 0 0 5px 0;      // Controla los márgenes internos
+  color: var(--ion-color-dark); 
+  margin: 0 0 5px 0;      
   text-align: center;
 }
 
-// Estilos para el Autor
+
 .project-author {
-  font-size: 0.9rem;      // Un poco más pequeño para dar jerarquía visual
-  color: var(--ion-color-medium); // Un tono grisáceo elegante
+  font-size: 0.9rem;     
+  color: var(--ion-color-medium);
   margin: 0;
   text-align: center;
-  font-style: italic;     // Toque visual opcional
+  font-style: italic;     
 }
-// Estilos para la nota del administrador al final
+
 .admin-notice-container {
-  margin-top: 25px;       // Espacio de separación con la tarjeta de login
-  padding: 0 20px;        // Margen interno para que no toque los bordes de la pantalla
-  text-align: center;     // Centra todo el texto
+  margin-top: 25px;       
+  padding: 0 20px;      
+  text-align: center;    
 }
 
 .admin-notice-text {
-  font-size: 0.9rem;      // Tamaño sutil y legible
-  color: var(--ion-color-medium); // Un tono grisáceo para que sea informativo y no un distractor principal
-  line-height: 1.4;       // Mejora el espacio entre líneas de texto
-
+  font-size: 0.9rem;     
+  color: var(--ion-color-medium);
+  line-height: 1.4;       
   strong {
-    color: var(--ion-color-dark); // Resalta un poco más la frase "comunícate con el administrador"
+    color: var(--ion-color-dark); 
   }
 }
 .project-author {
   font-size: 0.9rem;
-  color: var(--ion-color-medium); // Un gris elegante
+  color: var(--ion-color-medium); 
   text-align: center;
   margin-top: 5px;
   margin-bottom: 0;
   font-weight: 500;
-  letter-spacing: 0.5px; // Le da un toque ligero de separación muy limpio
+  letter-spacing: 0.5px; 
 }

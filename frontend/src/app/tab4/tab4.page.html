@@ -9,90 +9,68 @@
 
 <ion-content [fullscreen]="true">
   
-  <div *ngIf="cargando" class="loading-container">
-    <ion-spinner name="crescent" color="success"></ion-spinner>
-    <p>Cargando alertas...</p>
-  </div>
-
-  <div *ngIf="!cargando">
-    <ion-list lines="none" class="ion-padding-horizontal">
-      
-      
-      <ion-card class="card-guia" mode="ios">
-        <ion-item button href="https://youtu.be/67pZW5hcQC4?si=IbeRaDvaQWDwqfvg" target="_blank" detail="false" lines="none">
-          <ion-icon name="alert-circle" slot="start" color="danger" class="guia-icon"></ion-icon>
-          <ion-label>
-            <h2>🌎 ¿Qué pasa si NO reciclamos bien?</h2>
-            <p>Conoce el destino real de la basura mal gestionada y el impacto en nuestro planeta. ¡Haz clic para ver el reportaje!</p>
-          </ion-label>
-          <ion-button slot="end" fill="clear" color="danger">
-            <ion-icon name="play-circle" style="font-size: 2rem;"></ion-icon>
-          </ion-button>
-        </ion-item>
-      </ion-card>
-
-    
-      <div class="indicador-semana">
-        <ion-icon name="calendar-outline"></ion-icon>
-        <span>✨ Alertas nuevas cada semana ✨</span>
-        <ion-icon name="sparkles"></ion-icon>
-      </div>
-
-   
-      <ng-container *ngFor="let alerta of alertasSemana; let i = index">
-        <ion-card class="card-alerta" mode="ios" 
-                  [class.alerta-alta]="alerta.prioridad === 'alta'"
-                  [class.alerta-media]="alerta.prioridad === 'media'"
-                  [class.alerta-baja]="alerta.prioridad === 'baja'"
-                  [style.animation-delay]="(i * 0.05) + 's'">
-          <ion-item detail="false" lines="none">
-            <div class="icono-alerta" 
-                 [class.icono-alerta-rojo]="alerta.prioridad === 'alta'"
-                 [class.icono-alerta-naranja]="alerta.prioridad === 'media'"
-                 [class.icono-alerta-verde]="alerta.prioridad === 'baja'">
-              <ion-icon [name]="alerta.icono"></ion-icon>
-            </div>
+  @if (cargando) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="success"></ion-spinner>
+      <p>Cargando alertas...</p>
+    </div>
+  } @else {
+    <div class="ion-list-container">
+      <ion-list lines="none" class="ion-padding-horizontal">
+        
+        <ion-card class="card-guia" mode="ios">
+          <ion-item button href="https://youtu.be/67pZW5hcQC4?si=IbeRaDvaQWDwqfvg" target="_blank" detail="false" lines="none">
+            <ion-icon name="alert-circle" slot="start" color="danger" class="guia-icon"></ion-icon>
             <ion-label>
-              <div class="badge-alerta" 
-                   [class.badge-rojo]="alerta.prioridad === 'alta'"
-                   [class.badge-naranja]="alerta.prioridad === 'media'"
-                   [class.badge-verde]="alerta.prioridad === 'baja'">
-                {{ alerta.badge }}
-              </div>
-              <h2 class="titulo-alerta">{{ alerta.titulo }}</h2>
-              <p class="descripcion-alerta">{{ alerta.descripcion }}</p>
+              <h2>🌎 ¿Qué pasa si NO reciclamos bien?</h2>
+              <p>Conoce el destino real de la basura mal gestionada y el impacto en nuestro planeta. ¡Haz clic para ver el reportaje!</p>
             </ion-label>
+            <ion-button slot="end" fill="clear" color="danger">
+              <ion-icon name="play-circle" style="font-size: 2rem;"></ion-icon>
+            </ion-button>
           </ion-item>
         </ion-card>
-      </ng-container>
 
-  
-      <div *ngIf="alertasAPI.length > 0" class="api-alertas-section">
-        <div class="separador-api">
-          <ion-icon name="cloud-outline"></ion-icon>
-          <span>RECURSOS EXTERNOS</span>
+        <div class="indicador-semana">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>✨ Alertas nuevas cada semana ✨</span>
+          <ion-icon name="sparkles"></ion-icon>
         </div>
-        
-        <ng-container *ngFor="let alerta of alertasAPI">
-          <ion-card class="card-api" mode="ios">
-            <ion-item button [href]="alerta.enlace" target="_blank" detail="false" lines="none">
-              <ion-icon name="link" slot="start" color="primary"></ion-icon>
+
+        @for (alerta of alertasSemana; track alerta.id || $index; let i = $index) {
+          <ion-card class="card-alerta" mode="ios" 
+                    [class.alerta-alta]="alerta.prioridad === 'alta'"
+                    [class.alerta-media]="alerta.prioridad === 'media'"
+                    [class.alerta-baja]="alerta.prioridad === 'baja'"
+                    [style.animation-delay]="(i * 0.05) + 's'">
+            <ion-item detail="false" lines="none">
+              <div class="icono-alerta" 
+                   [class.icono-alerta-rojo]="alerta.prioridad === 'alta'"
+                   [class.icono-alerta-naranja]="alerta.prioridad === 'media'"
+                   [class.icono-alerta-verde]="alerta.prioridad === 'baja'">
+                <ion-icon [name]="alerta.icono"></ion-icon>
+              </div>
               <ion-label>
-                <h2>{{ alerta.titulo }}</h2>
-                <p>{{ alerta.descripcion }}</p>
+                <div class="badge-alerta" 
+                     [class.badge-rojo]="alerta.prioridad === 'alta'"
+                     [class.badge-naranja]="alerta.prioridad === 'media'"
+                     [class.badge-verde]="alerta.prioridad === 'baja'">
+                  {{ alerta.badge }}
+                </div>
+                <h2 class="titulo-alerta">{{ alerta.titulo }}</h2>
+                <p class="descripcion-alerta">{{ alerta.descripcion }}</p>
               </ion-label>
             </ion-item>
           </ion-card>
-        </ng-container>
-      </div>
+        }
 
-    
-      <div class="mensaje-final">
-        <ion-icon name="heart-circle-outline"></ion-icon>
-        <p>Pequeñas acciones, grandes cambios. 🌱<br>¡Gracias por reciclar correctamente!</p>
-      </div>
+        <div class="mensaje-final">
+          <ion-icon name="heart-circle-outline"></ion-icon>
+          <p>Pequeñas acciones, grandes cambios. 🌱<br>¡Gracias por reciclar correctamente!</p>
+        </div>
 
-    </ion-list>
-  </div>
+      </ion-list>
+    </div>
+  }
 
 </ion-content>

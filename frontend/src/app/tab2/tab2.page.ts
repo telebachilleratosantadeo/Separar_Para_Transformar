@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http'; // Importante para la API
+import { HttpClient, HttpClientModule } from '@angular/common/http'; 
 import { 
   IonHeader, IonToolbar, IonTitle, IonContent, 
   IonGrid, IonRow, IonCol, IonIcon, 
@@ -19,7 +19,7 @@ import {
   styleUrls: ['tab2.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, HttpClientModule, // Asegúrate de que estén aquí
+    CommonModule, HttpClientModule, 
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonGrid, IonRow, IonCol, IonIcon, 
     IonCardSubtitle, IonCardContent, IonLabel, IonList, IonItem,
@@ -27,7 +27,7 @@ import {
   ]
 })
 export class Tab2Page implements OnInit {
-  // Arreglo donde se guardarán los enlaces de la BD
+
   enlaces: any[] = [];
 
   constructor(private http: HttpClient) {
@@ -45,7 +45,6 @@ export class Tab2Page implements OnInit {
   }
 
   obtenerEnlaces() {
-    // Cambia esta URL por la de tu endpoint real (ej: http://localhost:3000/enlaces)
     this.http.get<any[]>('http://localhost:3000/enlaces').subscribe({
       next: (data) => {
         this.enlaces = data;
