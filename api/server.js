@@ -1,14 +1,24 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const db = require('./database'); 
 const PDFDocument = require('pdfkit');
+const { ChartJSNodeCanvas } = require('chartjs-node-canvas'); 
+
 const app = express();
-const path = require('path');
+
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+const verificarToken = (req, res, next) => {
+    const token = req.headers['authorization'];
+    if (!token) return res.status(403).json({ error: "No autorizado" });
+    next();
+};
+
 app.post('/login', async (req, res) => {
     const { curp, password } = req.body;
     try {
@@ -58,6 +68,7 @@ app.post('/reciclaje', async (req, res) => {
 app.get('/estadisticas/:usuarioId', async (req, res) => {
     try {
         const { usuarioId } = req.params;
+
         const query = `
             SELECT 
                 CASE 
@@ -70,8 +81,6 @@ app.get('/estadisticas/:usuarioId', async (req, res) => {
             LEFT JOIN residuos r ON rec.residuo_id = r.id
             WHERE rec.usuario_id = ? 
               AND rec.estado = 'aprobado'
-              AND MONTH(rec.fecha) = MONTH(CURRENT_DATE())
-              AND YEAR(rec.fecha) = YEAR(CURRENT_DATE())
             GROUP BY 
                 CASE 
                     WHEN r.nombre IN ('Plástico', 'Vidrio', 'Papel', 'Orgánico') THEN r.nombre
@@ -79,11 +88,12 @@ app.get('/estadisticas/:usuarioId', async (req, res) => {
                 END, 
                 rec.usuario_id
         `;
+        
         const [rows] = await db.query(query, [usuarioId]);
         res.json(rows);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Error al obtener estadísticas mensuales" });
+        console.error("Error en estadísticas:", err);
+        res.status(500).json({ error: "Error al obtener estadísticas" });
     }
 });
 app.get('/admin/estadisticas-globales', async (req, res) => {
@@ -268,7 +278,6 @@ app.put('/admin/asignar-recolector/:reciclaje_id', async (req, res) => {
     }
 });
 
-const { ChartJSNodeCanvas } = require('chartjs-node-canvas'); 
 app.get('/admin/exportar-pdf', async (req, res) => {
     try {
         
@@ -281,9 +290,8 @@ app.get('/admin/exportar-pdf', async (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename=Reporte_Detallado_Impacto.pdf');
 
         doc.pipe(res);
-
-        
-        const logoPath = path.join(__dirname, '..', 'frontend', 'src', 'app', 'assets', 'TBCST.jpeg');
+    
+const logoPath = path.join(__dirname, '../frontend/src/assets/TBCST.jpeg');
         try {
             doc.image(logoPath, 450, 40, { width: 100 });
         } catch (e) {
@@ -436,6 +444,11 @@ app.get('/admin/exportar-pdf', async (req, res) => {
             res.status(500).json({ error: "Error al generar el reporte" });
         }
     }
+});
+app.use(express.static(path.join(__dirname, '../frontend/dist/browser')));
+
+app.get(/^(?!\/api).+/, (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/browser/index.html'));
 });
 app.listen(PORT, () => {
     console.log(`✅ Servidor MySQL corriendo en http://localhost:${PORT}`);

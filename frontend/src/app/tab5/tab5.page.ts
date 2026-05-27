@@ -220,40 +220,26 @@ establecerMesActual() {
     });
   }
 
-  obtenerEstadisticas() {
-    const usuarioLog = JSON.parse(localStorage.getItem('usuario') || '{}');
-    if (!usuarioLog.id) return;
+obtenerEstadisticas() {
+  const usuarioLog = JSON.parse(localStorage.getItem('usuario') || '{}');
+  if (!usuarioLog.id) return;
 
-    this.http.get<any[]>(`${this.apiEstadisticas}/${usuarioLog.id}`).subscribe({
-      next: (data) => {
-        const fechaActual = new Date();
-        const mesActual = fechaActual.getMonth();
-        const añoActual = fechaActual.getFullYear();
+  this.http.get<any[]>(`${this.apiEstadisticas}/${usuarioLog.id}`).subscribe({
+    next: (data) => {
 
-        const estadisticasFiltradas = (data || []).filter(e => {
-          const belongs = e.usuario_id === usuarioLog.id || !e.usuario_id;
-          // Si tu backend NO incluye fecha en las estadísticas, remueve las validaciones de fecha de abajo:
-          if (e.fecha) {
-            const fechaE = new Date(e.fecha);
-            return belongs && fechaE.getMonth() === mesActual && fechaE.getFullYear() === añoActual;
-          }
-          return belongs;
-        }); 
-        
-        this.estadisticas = estadisticasFiltradas; 
-        this.estadisticasMostradas = estadisticasFiltradas.slice(0, this.batchSize);
-        
-        const sumaTotal = this.obtenerTotalGeneral();
-        this.calcularImpactoAmbiental(sumaTotal);
-
-        if (this._selectedSegment === 'third') {
-          setTimeout(() => this.generarGrafica(), 300);
-        }
-      },
-      error: (err) => console.error('Error al cargar estadísticas:', err)
-    });
-  }
-
+      this.estadisticas = Array.isArray(data) ? data : [];
+      this.estadisticasMostradas = [...this.estadisticas];
+      
+      const sumaTotal = this.estadisticas.reduce((acc, curr) => acc + Number(curr.total || 0), 0);
+      this.calcularImpactoAmbiental(sumaTotal);
+    
+      if (this._selectedSegment === 'third') {
+        setTimeout(() => this.generarGrafica(), 300);
+      }
+    },
+    error: (err) => console.error('Error al cargar estadísticas:', err)
+  });
+}
   abrirModal(foto: string) {
     this.fotoGrande = foto;
     this.isModalOpen = true;
