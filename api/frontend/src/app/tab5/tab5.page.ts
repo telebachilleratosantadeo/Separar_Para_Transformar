@@ -53,6 +53,7 @@ import {
   searchOutline,
   statsChartOutline
 } from 'ionicons/icons';
+import { environment } from 'src/environments/environment.prod';
 
 @Component({
   selector: 'app-tab5',
@@ -131,10 +132,10 @@ export class Tab5Page implements OnInit {
     }).length;
   }
 
-  apiUrl = 'http://localhost:3000/usuario';
-  apiReciclajes = 'http://localhost:3000/reciclajes';
-  apiEstadisticas = 'http://localhost:3000/estadisticas';
-  apiAdmin = 'http://localhost:3000/admin';
+apiUrl = `${environment.apiUrl}/usuario`;
+apiReciclajes = `${environment.apiUrl}/reciclajes`;
+apiEstadisticas = `${environment.apiUrl}/estadisticas`;
+apiAdmin = `${environment.apiUrl}/admin`;
 
   private batchSize = 5;
   public chart: any;
@@ -192,7 +193,7 @@ establecerMesActual() {
   }
 
   obtenerPendientes() {
-    this.http.get<any[]>(`http://localhost:3000/admin/pendientes`).subscribe({
+    this.http.get<any[]>(`${this.apiAdmin}/pendientes`).subscribe({
       next: (data) => {
         this.reciclajesPendientes = data; 
         console.log('📋 Pendientes recibidos:', this.reciclajesPendientes);
@@ -202,7 +203,7 @@ establecerMesActual() {
   }
 
   validarReciclaje(id: number, estado: string) {
-    this.http.put(`http://localhost:3000/admin/validar/${id}`, { estado }).subscribe({
+    this.http.put(`${this.apiAdmin}/validar/${id}`, { estado }).subscribe({
       next: (res: any) => {
         if (res.success) {
           this.reciclajesPendientes = this.reciclajesPendientes.filter(p => p.id !== id);
@@ -286,7 +287,7 @@ obtenerEstadisticas() {
   }
 
   obtenerEstadisticasGlobales() {
-    this.http.get<any[]>('http://localhost:3000/admin/estadisticas-globales').subscribe({
+    this.http.get<any[]>(`${this.apiAdmin}/estadisticas-globales`).subscribe({
       next: (data) => {
         console.log('📊 Datos originales:', data);
         let totalOtros = 0;
@@ -453,7 +454,7 @@ obtenerEstadisticas() {
   exportarPDF() {
     const usuarioLog = JSON.parse(localStorage.getItem('usuario') || '{}');
     if (usuarioLog.rol === 'admin' || usuarioLog.rol === 'comite') {
-      const url = 'http://localhost:3000/admin/exportar-pdf';
+    const url = `${environment.apiUrl}/admin/exportar-pdf`;
       window.open(url, '_blank');
     } else {
       alert('No tienes permisos para generar este reporte global.');

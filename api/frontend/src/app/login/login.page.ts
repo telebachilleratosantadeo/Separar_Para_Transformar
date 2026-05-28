@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
@@ -23,8 +24,7 @@ import {
 })
 export class LoginPage {
   login = { curp: '', password: '' };
-  apiUrl = 'http://localhost:3000';
-
+apiUrl = environment.apiUrl;
   constructor(private http: HttpClient, private router: Router) {}
 
   iniciarSesion() {
