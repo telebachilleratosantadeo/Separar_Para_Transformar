@@ -36,7 +36,7 @@ export class Tab1Page {
   fotoBase64: string | undefined = undefined;
   fechaRegistro: string = new Date().toISOString().split('T')[0];
 
-  API = 'http://localhost:3000';
+API = 'https://separar-para-transformar.onrender.com';
 
   constructor(
     private toastController: ToastController,
@@ -55,7 +55,7 @@ export class Tab1Page {
   async tomarFoto() {
     try {
       const image = await Camera.getPhoto({
-        quality: 70,
+        quality: 50,
         allowEditing: false,
         resultType: CameraResultType.Base64,
         source: CameraSource.Camera
@@ -69,7 +69,7 @@ export class Tab1Page {
   async elegirDeGaleria() {
     try {
       const image = await Camera.getPhoto({
-        quality: 70,
+        quality: 50,
         allowEditing: false,
         resultType: CameraResultType.Base64,
         source: CameraSource.Photos
