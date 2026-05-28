@@ -292,7 +292,7 @@ app.get('/admin/exportar-pdf', async (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename=Reporte_Detallado_Impacto.pdf');
 
         doc.pipe(res);
-const logoPath = path.join(__dirname, 'frontend/www/assets/TBCST.jpeg');
+const logoPath = path.join(__dirname, '../frontend/www/assets/TBCST.jpeg');
 try {
     doc.image(logoPath, 450, 40, { width: 100 });
 } catch (e) {
