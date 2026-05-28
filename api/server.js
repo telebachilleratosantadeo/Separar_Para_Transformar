@@ -12,13 +12,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-const rutaFrontend = path.join(__dirname, 'API/Frontal/www');
+const rutaFrontend = path.join(__dirname, '../frontend/www');
 console.log("--- DIAGNÓSTICO DE CARPETAS ---");
 console.log("Directorio actual del servidor:", __dirname);
 console.log("Ruta que estamos buscando:", rutaFrontend);
 console.log("¿Existe la carpeta 'Frontal'?", fs.existsSync(path.join(__dirname, 'Frontal')));
 console.log("¿Existe la carpeta 'www' dentro de 'Frontal'?", fs.existsSync(rutaFrontend));
 console.log("--- FIN DEL DIAGNÓSTICO ---");
+console.log(fs.readdirSync(__dirname));
+console.log(fs.readdirSync(path.join(__dirname, '..')));
 
 app.use(express.static(rutaFrontend));
 app.post('/login', async (req, res) => {
@@ -446,9 +448,10 @@ const logoPath = path.join(__dirname, 'frontend/src/assets/TBCST.jpeg'); try {
         }
     }
 });
-app.get('/*', (req, res) => {
+app.use((req, res) => {
     res.sendFile(path.join(rutaFrontend, 'index.html'));
 });
+
 app.listen(PORT, () => {
     console.log(`✅ Servidor corriendo en puerto ${PORT}`);
 });
