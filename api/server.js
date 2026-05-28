@@ -12,13 +12,10 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-app.use(express.static(path.join(__dirname, '../frontend/www')));
+const rutaFrontend = path.join(__dirname, '../frontend/www');
+console.log("Intentando servir archivos desde:", rutaFrontend);
 
-const verificarToken = (req, res, next) => {
-    const token = req.headers['authorization'];
-    if (!token) return res.status(403).json({ error: "No autorizado" });
-    next();
-};
+app.use(express.static(rutaFrontend));
 app.post('/login', async (req, res) => {
     const { curp, password } = req.body;
     try {
@@ -446,10 +443,10 @@ const logoPath = path.join(__dirname, '../frontend/src/assets/TBCST.jpeg');
     }
 });
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/www/index.html'));
+    if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(rutaFrontend, 'index.html'));
+    }
 });
-
-// --- ÚNICO PUERTO ---
 app.listen(PORT, () => {
     console.log(`✅ Servidor corriendo en puerto ${PORT}`);
 });
