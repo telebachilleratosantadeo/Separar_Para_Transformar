@@ -45,7 +45,7 @@ export class Tab2Page implements OnInit {
   }
 
   obtenerEnlaces() {
-    this.http.get<any[]>('http://localhost:3000/enlaces').subscribe({
+    this.http.get<any[]>('https://separar-para-transformar.onrender.com/tabs/tab2').subscribe({
       next: (data) => {
         this.enlaces = data;
         console.log('Enlaces cargados:', this.enlaces);
