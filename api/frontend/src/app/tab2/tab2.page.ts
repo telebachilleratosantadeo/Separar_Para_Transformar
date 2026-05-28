@@ -45,14 +45,13 @@ export class Tab2Page implements OnInit {
   }
 
   obtenerEnlaces() {
-    this.http.get<any[]>('https://separar-para-transformar.onrender.com/tabs/tab2').subscribe({
-      next: (data) => {
-        this.enlaces = data;
-        console.log('Enlaces cargados:', this.enlaces);
-      },
-      error: (err) => {
-        console.error('Error al obtener enlaces de la BD:', err);
-      }
-    });
+   this.http.get<any[]>('https://separar-para-transformar.onrender.com/enlaces').subscribe({
+  next: (data) => {
+    this.enlaces = data;
+    console.log('¡Éxito! Enlaces cargados:', this.enlaces);
+  },
+  error: (err) => {
+    console.error('Error al obtener enlaces de la BD:', err);
   }
-}
+});
+}}
