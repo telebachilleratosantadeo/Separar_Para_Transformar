@@ -446,10 +446,8 @@ const logoPath = path.join(__dirname, 'frontend/src/assets/TBCST.jpeg'); try {
         }
     }
 });
-app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(rutaFrontend, 'index.html'));
-    }
+app.get('/*', (req, res) => {
+    res.sendFile(path.join(rutaFrontend, 'index.html'));
 });
 app.listen(PORT, () => {
     console.log(`✅ Servidor corriendo en puerto ${PORT}`);
