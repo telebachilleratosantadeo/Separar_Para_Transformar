@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-const rutaFrontend = path.join(__dirname, '../frontend/www');
+const rutaFrontend = path.join(__dirname, 'frontend/www');
 console.log("--- DIAGNÓSTICO DE CARPETAS ---");
 console.log("Directorio actual del servidor:", __dirname);
 console.log("Ruta que estamos buscando:", rutaFrontend);
@@ -294,8 +294,7 @@ app.get('/admin/exportar-pdf', async (req, res) => {
         res.setHeader('Content-Disposition', 'attachment; filename=Reporte_Detallado_Impacto.pdf');
 
         doc.pipe(res);
-const logoPath = path.join(__dirname, '../frontend/src/assets/TBCST.jpeg');
-
+const logoPath = path.join(__dirname, 'frontend/www/assets/TBCST.jpeg');
 try {
     doc.image(logoPath, 450, 40, { width: 100 });
 } catch (e) {
@@ -449,9 +448,10 @@ try {
         }
     }
 });
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
     res.sendFile(path.join(rutaFrontend, 'index.html'));
 });
+
 app.listen(PORT, () => {
     console.log(`✅ Servidor corriendo en puerto ${PORT}`);
 });
