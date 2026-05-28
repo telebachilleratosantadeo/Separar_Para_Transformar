@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://separar-para-transformar.onrender.com'
+  apiUrl: 'http://localhost:3000' 
 };
 
 /*
