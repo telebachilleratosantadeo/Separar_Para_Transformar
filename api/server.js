@@ -12,16 +12,13 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-const rutaFrontend = path.join(__dirname, '../frontend');
-console.log("CONTENIDO DE LA CARPETA FRONTEND:", fs.readdirSync(rutaFrontend));
+const rutaFrontend = path.join(__dirname, '../frontend/www');
+
 console.log("--- DIAGNÓSTICO DE CARPETAS ---");
 console.log("Directorio actual del servidor:", __dirname);
 console.log("Ruta que estamos buscando:", rutaFrontend);
-console.log("¿Existe la carpeta 'Frontal'?", fs.existsSync(path.join(__dirname, 'Frontal')));
-console.log("¿Existe la carpeta 'www' dentro de 'Frontal'?", fs.existsSync(rutaFrontend));
+console.log("¿Existe frontend?", fs.existsSync(rutaFrontend));
 console.log("--- FIN DEL DIAGNÓSTICO ---");
-console.log(fs.readdirSync(__dirname));
-console.log(fs.readdirSync(path.join(__dirname, '..')));
 
 app.use(express.static(rutaFrontend));
 app.post('/login', async (req, res) => {
@@ -449,7 +446,7 @@ try {
         }
     }
 });
-app.get(/.*/, (req, res) => {
+app.get('*', (req, res) => {
     res.sendFile(path.join(rutaFrontend, 'index.html'));
 });
 
