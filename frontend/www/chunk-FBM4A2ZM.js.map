@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/services/user.service.ts"],
+  "sourcesContent": ["import { Injectable } from '@angular/core';\r\nimport { HttpClient } from '@angular/common/http';\r\nimport { Observable } from 'rxjs';\r\n\r\n@Injectable({\r\n  providedIn: 'root'\r\n})\r\nexport class UserService {\r\n  private API_URL = 'http://localhost:3000';\r\n  public usuarioSeleccionado: any;\r\n\r\n  constructor(private http: HttpClient) { }\r\n  getTodosLosUsuarios(): Observable<any[]> {\r\n    return this.http.get<any[]>(`${this.API_URL}/admin/usuarios`);\r\n  }\r\n  actualizarUsuario(id: number, datos: any): Observable<any> {\r\n    return this.http.put(`${this.API_URL}/usuario/${id}`, datos);\r\n  }\r\n}\r\n"],
+  "mappings": ";;;;;;;;;AAOM,IAAO,eAAP,MAAO,aAAW;EAItB,YAAoB,MAAgB;AAAhB,SAAA,OAAA;AAHZ,SAAA,UAAU;EAGsB;EACxC,sBAAmB;AACjB,WAAO,KAAK,KAAK,IAAW,GAAG,KAAK,OAAO,iBAAiB;EAC9D;EACA,kBAAkB,IAAY,OAAU;AACtC,WAAO,KAAK,KAAK,IAAI,GAAG,KAAK,OAAO,YAAY,EAAE,IAAI,KAAK;EAC7D;;;mCAVW,cAAW,mBAAA,UAAA,CAAA;AAAA;gFAAX,cAAW,SAAX,aAAW,WAAA,YAFV,OAAM,CAAA;AAEd,IAAO,cAAP;;sEAAO,aAAW,CAAA;UAHvB;WAAW;MACV,YAAY;KACb;;;",
+  "names": []
+}

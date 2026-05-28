@@ -6,19 +6,19 @@ const PDFDocument = require('pdfkit');
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas'); 
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-const PORT = process.env.PORT || 3000;
+app.use(express.static(path.join(__dirname, '../frontend/www')));
 
 const verificarToken = (req, res, next) => {
     const token = req.headers['authorization'];
     if (!token) return res.status(403).json({ error: "No autorizado" });
     next();
 };
-
 app.post('/login', async (req, res) => {
     const { curp, password } = req.body;
     try {
@@ -445,11 +445,11 @@ const logoPath = path.join(__dirname, '../frontend/src/assets/TBCST.jpeg');
         }
     }
 });
-app.use(express.static(path.join(__dirname, '../frontend/dist/browser')));
-
-app.get(/^(?!\/api).+/, (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/browser/index.html'));
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/www/index.html'));
 });
+
+// --- ÚNICO PUERTO ---
 app.listen(PORT, () => {
-    console.log(`✅ Servidor MySQL corriendo en http://localhost:${PORT}`);
+    console.log(`✅ Servidor corriendo en puerto ${PORT}`);
 });
