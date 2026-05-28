@@ -12,6 +12,7 @@ import {
   leaf, beaker, documentText, wine, 
   warning, bookOutline, openOutline, closeCircle 
 } from 'ionicons/icons';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-tab2',
@@ -45,7 +46,7 @@ export class Tab2Page implements OnInit {
   }
 
   obtenerEnlaces() {
-    this.http.get<any[]>('http://localhost:3000/enlaces').subscribe({
+   this.http.get(`${environment.apiUrl}/enlaces`).subscribe({
       next: (data) => {
         this.enlaces = data;
         console.log('Enlaces cargados:', this.enlaces);
