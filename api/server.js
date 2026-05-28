@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs'); // Mover el require arriba
+const fs = require('fs'); 
 const db = require('./database'); 
 const PDFDocument = require('pdfkit');
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas'); 
@@ -12,17 +12,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+const rutaFrontend = path.join(__dirname, '../Frontal/www');
 
-// --- DIAGNÓSTICO ---
-const rutaFrontend = path.join(__dirname, '../frontend/www');
 console.log("--- DIAGNÓSTICO DE CARPETAS ---");
 console.log("Directorio actual del servidor:", __dirname);
 console.log("Ruta que estamos buscando:", rutaFrontend);
-console.log("¿Existe la carpeta 'frontend'?", fs.existsSync(path.join(__dirname, '../frontend')));
-console.log("¿Existe la carpeta 'www' dentro de 'frontend'?", fs.existsSync(rutaFrontend));
+console.log("¿Existe la carpeta 'Frontal'?", fs.existsSync(path.join(__dirname, '../Frontal')));
+console.log("¿Existe la carpeta 'www' dentro de 'Frontal'?", fs.existsSync(rutaFrontend));
 console.log("--- FIN DEL DIAGNÓSTICO ---");
 
-// --- CONFIGURACIÓN ESTATICA ---
 app.use(express.static(rutaFrontend));
 app.post('/login', async (req, res) => {
     const { curp, password } = req.body;
